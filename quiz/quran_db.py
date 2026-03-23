@@ -36,7 +36,15 @@ def get_chapters():
 def get_verses(surah_number: int):
     with _conn() as conn:
         return conn.execute(
-            f"""SELECT {VERSE_NUMBER}, {VERSE_INDEX}, {VERSE_TEXT_AR}, {VERSE_TEXT_EN}
+            f"""SELECT
+                    {VERSE_NUMBER},
+                    {VERSE_NUMBER} AS verse_number,
+                    {VERSE_INDEX},
+                    {VERSE_INDEX} AS verse_index,
+                    {VERSE_TEXT_AR},
+                    {VERSE_TEXT_AR} AS text_ar,
+                    {VERSE_TEXT_EN},
+                    {VERSE_TEXT_EN} AS text_en
                 FROM {VERSES_TABLE}
                 WHERE {VERSE_SURAH_NUMBER} = ?
                 ORDER BY {VERSE_NUMBER}""",
