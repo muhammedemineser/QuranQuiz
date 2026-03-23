@@ -2,24 +2,85 @@
 {% block title %}Mushaf – Surah {{ surah_number }}{% endblock %}
 
 {% block extra_css %}
+.mushaf-shell {
+  position: relative;
+  min-height: 100%;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: var(--nav-height) 0 0;
+  background: rgba(0, 0, 0, 0.72);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 35;
+}
+
+.sidebar-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mushaf-sidebar {
+  position: fixed;
+  top: var(--nav-height);
+  right: 0;
+  bottom: 0;
+  width: min(78vw, 290px);
+  min-width: 0;
+  max-width: 290px;
+  border-left: none;
+  border-right: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform 0.22s ease;
+  z-index: 40;
+}
+
+.mushaf-sidebar.open {
+  transform: translateX(0);
+}
+
 .mushaf-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
   border-bottom: 1px solid var(--border);
   direction: ltr;
 }
 
+.mushaf-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.sidebar-toggle {
+  min-width: 2.65rem;
+  justify-content: center;
+  padding-inline: 0.75rem;
+}
+
 .surah-title {
   font-family: 'Scheherazade New', serif;
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 5vw, 1.6rem);
   color: var(--gold);
   direction: rtl;
+  line-height: 1.2;
+}
+
+.mushaf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
 }
 
 .mushaf-body {
-  padding: 2rem;
+  padding: 1.1rem 0.9rem 1.5rem;
   max-width: 860px;
   margin: 0 auto;
 }
@@ -27,29 +88,30 @@
 .basmala {
   text-align: center;
   font-family: 'Scheherazade New', serif;
-  font-size: 2.2rem;
+  font-size: clamp(1.6rem, 7vw, 2.2rem);
   color: var(--gold);
-  margin-bottom: 2rem;
+  margin-bottom: 1.4rem;
   direction: rtl;
 }
 
 .verses-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.45rem 0.55rem;
   direction: rtl;
-  line-height: 2.4;
+  line-height: 1.95;
 }
 
 .verse-token {
   display: inline-flex;
   align-items: baseline;
   gap: 0.3rem;
-  padding: 0.3rem 0.6rem;
+  padding: 0.18rem 0.38rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   transition: background 0.3s;
   cursor: default;
+  max-width: 100%;
 }
 
 .verse-token.unlocked {
@@ -66,14 +128,15 @@
 
 .verse-token .verse-num {
   font-family: sans-serif;
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   color: var(--gold-dim);
   vertical-align: super;
 }
 
 .verse-text {
   font-family: 'Scheherazade New', serif;
-  font-size: 1.4rem;
+  font-size: clamp(1rem, 4.8vw, 1.4rem);
+  line-height: 1.7;
 }
 
 /* Quiz Modal */
@@ -94,9 +157,12 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 2rem;
+  padding: 1rem;
   width: 100%;
   max-width: 580px;
+  margin: 0.8rem;
+  max-height: calc(100vh - 1.6rem);
+  overflow-y: auto;
   direction: rtl;
 }
 
@@ -112,9 +178,9 @@
 
 .modal-prompt {
   font-family: 'Scheherazade New', serif;
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 3.8vw, 1.1rem);
   color: var(--text-dim);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.1rem;
   direction: ltr;
 }
 
@@ -148,7 +214,7 @@
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
-  padding: 0.55rem 0.75rem;
+  padding: 0.5rem 0.65rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--surface2);
@@ -158,7 +224,7 @@
 .recent-verse-text {
   flex: 1;
   font-family: 'Scheherazade New', serif;
-  font-size: 1rem;
+  font-size: clamp(0.92rem, 3.7vw, 1rem);
   color: var(--text);
 }
 
@@ -179,7 +245,7 @@
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 0.9rem 1rem;
+  padding: 0.75rem 0.85rem;
   color: var(--text);
   cursor: pointer;
   transition: all 0.15s;
@@ -191,22 +257,22 @@
 }
 
 .option-index {
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 1.8rem;
+  height: 1.8rem;
   border-radius: 999px;
   border: 1px solid currentColor;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   flex-shrink: 0;
 }
 
 .option-text {
   flex: 1;
   font-family: 'Scheherazade New', serif;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 4vw, 1.2rem);
   text-align: right;
   direction: rtl;
 }
@@ -221,8 +287,9 @@
 .option-btn:disabled { cursor: default; }
 
 .modal-actions {
-  margin-top: 1.25rem;
+  margin-top: 1rem;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: flex-end;
   direction: ltr;
@@ -230,17 +297,74 @@
 
 .done-banner {
   text-align: center;
-  padding: 3rem;
+  padding: 2rem 1rem;
   font-family: 'Scheherazade New', serif;
-  font-size: 1.8rem;
+  font-size: clamp(1.25rem, 5vw, 1.8rem);
   color: var(--gold);
   direction: rtl;
+}
+
+@media (min-width: 700px) {
+  .mushaf-header {
+    align-items: center;
+    padding: 1rem 1.5rem;
+  }
+
+  .mushaf-body {
+    padding: 1.8rem 1.5rem 2rem;
+  }
+
+  .verses-grid {
+    gap: 0.75rem;
+    line-height: 2.4;
+  }
+
+  .verse-token {
+    padding: 0.3rem 0.6rem;
+  }
+
+  .verse-token .verse-num {
+    font-size: 0.65rem;
+  }
+
+  .modal {
+    padding: 2rem;
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+}
+
+@media (min-width: 980px) {
+  .mushaf-shell {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .mushaf-sidebar {
+    position: sticky;
+    top: 0;
+    transform: none;
+    width: 220px;
+    min-width: 220px;
+    max-width: none;
+    height: calc(100vh - var(--nav-height));
+    border-right: none;
+    border-left: 1px solid var(--border);
+    z-index: 1;
+  }
+
+  .sidebar-backdrop,
+  .sidebar-toggle {
+    display: none;
+  }
 }
 {% endblock %}
 
 {% block sidebar %}
-<div class="sidebar">
-  <div class="sidebar-header" style="direction:ltr">Surahs</div>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<div class="sidebar mushaf-sidebar" id="surahSidebar">
+  <div class="sidebar-header">Surahs</div>
   {% for ch in chapters %}
   <a href="?surah={{ ch.chapter_number }}"
      class="{% if ch.chapter_number == surah_number %}active{% endif %}">
@@ -252,27 +376,34 @@
 {% endblock %}
 
 {% block content %}
-<div class="mushaf-header">
-  <div class="surah-title">{{ chapters.0.chapter_name }}</div>
-  <div style="display:flex;gap:0.75rem">
-    <a href="{% url 'progress' %}" class="btn btn-outline">Progress</a>
-    <button class="btn btn-gold" id="playBtn">▶ Play</button>
-  </div>
-</div>
+<div class="mushaf-shell">
+  <div style="flex:1;min-width:0">
+    <div class="mushaf-header">
+      <div class="mushaf-title-wrap">
+        <button class="btn btn-outline sidebar-toggle" id="sidebarToggle" type="button" aria-controls="surahSidebar" aria-expanded="false" aria-label="Toggle surah list">☰</button>
+        <div class="surah-title">{{ chapters.0.chapter_name }}</div>
+      </div>
+      <div class="mushaf-actions">
+        <a href="{% url 'progress' %}" class="btn btn-outline">Progress</a>
+        <button class="btn btn-gold" id="playBtn">▶ Play</button>
+      </div>
+    </div>
 
-<div class="mushaf-body">
-  {% if surah_number != 9 %}
-  <div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
-  {% endif %}
+    <div class="mushaf-body">
+      {% if surah_number != 9 %}
+      <div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      {% endif %}
 
-  <div class="verses-grid" id="verseGrid">
-    {% for v in verses %}
-    <span class="verse-token {% if v.verse_index <= unlocked_up_to %}unlocked{% else %}locked{% endif %}"
-          data-index="{{ v.verse_index }}">
-      <span class="verse-text">{{ v.text_ar }}</span>
-      <span class="verse-num">﴿{{ v.verse_number }}﴾</span>
-    </span>
-    {% endfor %}
+      <div class="verses-grid" id="verseGrid">
+        {% for v in verses %}
+        <span class="verse-token {% if v.verse_index <= unlocked_up_to %}unlocked{% else %}locked{% endif %}"
+              data-index="{{ v.verse_index }}">
+          <span class="verse-text">{{ v.text_ar }}</span>
+          <span class="verse-num">﴿{{ v.verse_number }}﴾</span>
+        </span>
+        {% endfor %}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -302,11 +433,35 @@ const optionsEl = document.getElementById("optionsContainer");
 const promptEl = document.getElementById("modalPrompt");
 const nextBtn = document.getElementById("nextBtn");
 const recentVersesEl = document.getElementById("recentVerses");
+const sidebar = document.getElementById("surahSidebar");
+const sidebarToggle = document.getElementById("sidebarToggle");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 
 document.getElementById("playBtn").addEventListener("click", loadQuestion);
 document.getElementById("closeModal").addEventListener("click", () => modal.classList.remove("open"));
 nextBtn.addEventListener("click", loadQuestion);
 document.addEventListener("keydown", handleQuizKeyboard);
+
+if (sidebarToggle && sidebar && sidebarBackdrop) {
+  sidebarToggle.addEventListener("click", () => {
+    const isOpen = sidebar.classList.toggle("open");
+    sidebarBackdrop.classList.toggle("open", isOpen);
+    sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+    document.body.style.overflow = isOpen && window.innerWidth < 980 ? "hidden" : "";
+  });
+
+  sidebarBackdrop.addEventListener("click", closeSidebar);
+
+  sidebar.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", closeSidebar);
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth >= 980) {
+      closeSidebar();
+    }
+  });
+}
 
 async function loadQuestion() {
   nextBtn.style.display = "none";
@@ -420,6 +575,14 @@ function escapeHtml(value) {
 }
 
 function handleQuizKeyboard(event) {
+  if (event.key === "Escape") {
+    closeSidebar();
+    if (modal.classList.contains("open")) {
+      modal.classList.remove("open");
+    }
+    return;
+  }
+
   if (!modal.classList.contains("open")) return;
 
   if (event.key === "Enter") {
@@ -438,6 +601,14 @@ function handleQuizKeyboard(event) {
 
   event.preventDefault();
   btn.click();
+}
+
+function closeSidebar() {
+  if (!sidebar || !sidebarBackdrop || !sidebarToggle) return;
+  sidebar.classList.remove("open");
+  sidebarBackdrop.classList.remove("open");
+  sidebarToggle.setAttribute("aria-expanded", "false");
+  document.body.style.overflow = "";
 }
 </script>
 {% endblock %}
