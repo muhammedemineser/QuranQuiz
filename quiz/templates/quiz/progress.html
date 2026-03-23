@@ -28,6 +28,7 @@
   gap: 1rem;
   padding: 0.6rem 0;
   border-bottom: 1px solid var(--border);
+  cursor: pointer;
 }
 
 .row-name {
@@ -94,7 +95,7 @@
   </div>
 
   {% for row in rows %}
-  <div class="progress-row">
+  <div class="progress-row" data-href="{% url 'mushaf' %}?surah={{ row.number }}" tabindex="0" role="link">
     <div class="row-num">{{ row.number }}</div>
     <div class="row-name">{{ row.name }}</div>
     <div class="bar-wrap">
@@ -121,8 +122,23 @@ async function resetProgress(surahNumber) {
 }
 
 document.querySelectorAll(".row-reset").forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", event => {
+    event.stopPropagation();
     if (confirm("Reset this surah?")) resetProgress(parseInt(btn.dataset.surah));
+  });
+});
+
+document.querySelectorAll(".progress-row").forEach(row => {
+  const goToSurah = () => {
+    window.location.href = row.dataset.href;
+  };
+
+  row.addEventListener("click", goToSurah);
+  row.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      goToSurah();
+    }
   });
 });
 
