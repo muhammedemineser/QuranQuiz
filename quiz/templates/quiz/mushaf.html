@@ -1,0 +1,317 @@
+{% extends "quiz/base.html" %}
+{% block title %}Mushaf – Surah {{ surah_number }}{% endblock %}
+
+{% block extra_css %}
+.mushaf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  direction: ltr;
+}
+
+.surah-title {
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.6rem;
+  color: var(--gold);
+  direction: rtl;
+}
+
+.mushaf-body {
+  padding: 2rem;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.basmala {
+  text-align: center;
+  font-family: 'Scheherazade New', serif;
+  font-size: 2.2rem;
+  color: var(--gold);
+  margin-bottom: 2rem;
+  direction: rtl;
+}
+
+.verses-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  direction: rtl;
+  line-height: 2.4;
+}
+
+.verse-token {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: background 0.3s;
+  cursor: default;
+}
+
+.verse-token.unlocked {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.verse-token.locked {
+  background: var(--surface);
+  color: var(--border);
+  filter: blur(3px);
+  user-select: none;
+}
+
+.verse-token .verse-num {
+  font-family: sans-serif;
+  font-size: 0.65rem;
+  color: var(--gold-dim);
+  vertical-align: super;
+}
+
+.verse-text {
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.4rem;
+}
+
+/* Quiz Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  display: none;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  width: 100%;
+  max-width: 580px;
+  direction: rtl;
+}
+
+.modal-title {
+  font-family: sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  direction: ltr;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modal-prompt {
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  margin-bottom: 1.5rem;
+  direction: ltr;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.option-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  color: var(--text);
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.2rem;
+  cursor: pointer;
+  text-align: right;
+  direction: rtl;
+  transition: all 0.15s;
+  width: 100%;
+}
+
+.option-btn:hover:not(:disabled) {
+  border-color: var(--gold-dim);
+  background: #1a1a1a;
+}
+
+.option-btn.correct { background: var(--correct); border-color: #3a8c66; color: #d0f0e0; }
+.option-btn.wrong   { background: var(--wrong); border-color: #8c3030; color: #f0d0d0; }
+.option-btn:disabled { cursor: default; }
+
+.modal-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  direction: ltr;
+}
+
+.done-banner {
+  text-align: center;
+  padding: 3rem;
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.8rem;
+  color: var(--gold);
+  direction: rtl;
+}
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+  <div class="sidebar-header" style="direction:ltr">Surahs</div>
+  {% for ch in chapters %}
+  <a href="?surah={{ ch.chapter_number }}"
+     class="{% if ch.chapter_number == surah_number %}active{% endif %}">
+    <span class="num">{{ ch.chapter_number }}</span>
+    {{ ch.chapter_name }}
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="mushaf-header">
+  <div class="surah-title">{{ chapters.0.chapter_name }}</div>
+  <div style="display:flex;gap:0.75rem">
+    <a href="{% url 'progress' %}" class="btn btn-outline">Progress</a>
+    <button class="btn btn-gold" id="playBtn">▶ Play</button>
+  </div>
+</div>
+
+<div class="mushaf-body">
+  {% if surah_number != 9 %}
+  <div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+  {% endif %}
+
+  <div class="verses-grid" id="verseGrid">
+    {% for v in verses %}
+    <span class="verse-token {% if v.verse_index <= unlocked_up_to %}unlocked{% else %}locked{% endif %}"
+          data-index="{{ v.verse_index }}">
+      <span class="verse-text">{{ v.text_ar }}</span>
+      <span class="verse-num">﴿{{ v.verse_number }}﴾</span>
+    </span>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Quiz Modal -->
+<div class="modal-overlay" id="quizModal">
+  <div class="modal">
+    <div class="modal-title">Select the next verse / اختر الآية التالية</div>
+    <div class="modal-prompt" id="modalPrompt"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="closeModal">✕ Close</button>
+      <button class="btn btn-gold" id="nextBtn" style="display:none">Next →</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SURAH = {{ surah_number }};
+const CSRF = "{{ csrf_token }}";
+let correctIndex = null;
+let answeredCorrectly = false;
+
+const modal = document.getElementById("quizModal");
+const optionsEl = document.getElementById("optionsContainer");
+const promptEl = document.getElementById("modalPrompt");
+const nextBtn = document.getElementById("nextBtn");
+
+document.getElementById("playBtn").addEventListener("click", loadQuestion);
+document.getElementById("closeModal").addEventListener("click", () => modal.classList.remove("open"));
+nextBtn.addEventListener("click", loadQuestion);
+
+async function loadQuestion() {
+  nextBtn.style.display = "none";
+  optionsEl.innerHTML = '<div style="color:var(--text-dim);font-family:sans-serif;font-size:0.85rem;padding:1rem 0">Loading…</div>';
+  promptEl.textContent = "";
+  modal.classList.add("open");
+
+  const res = await fetch(`/api/question/?surah=${SURAH}`);
+  const data = await res.json();
+
+  if (data.done) {
+    optionsEl.innerHTML = '<div class="done-banner">🎉 سورة مكتملة – Surah Complete!</div>';
+    return;
+  }
+
+  correctIndex = data.correct_index;
+  answeredCorrectly = false;
+  promptEl.textContent = `Verse ${data.verse_number}`;
+  optionsEl.innerHTML = "";
+
+  data.options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt.text;
+    btn.dataset.index = opt.index;
+    btn.addEventListener("click", () => submitAnswer(opt.index, btn, data.options));
+    optionsEl.appendChild(btn);
+  });
+}
+
+async function submitAnswer(chosenIndex, chosenBtn, options) {
+  const btns = optionsEl.querySelectorAll(".option-btn");
+  btns.forEach(b => b.disabled = true);
+
+  const res = await fetch("/api/answer/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+    body: JSON.stringify({ surah: SURAH, chosen_index: chosenIndex, correct_index: correctIndex }),
+  });
+  const data = await res.json();
+
+  if (data.correct) {
+    chosenBtn.classList.add("correct");
+    unlockVerse(correctIndex);
+    nextBtn.style.display = "inline-flex";
+  } else {
+    chosenBtn.classList.add("wrong");
+    // Highlight correct
+    btns.forEach(b => { if (parseInt(b.dataset.index) === correctIndex) b.classList.add("correct"); });
+    // Re-enable all after short delay for retry (except correct)
+    setTimeout(() => {
+      btns.forEach(b => {
+        if (!b.classList.contains("correct") && !b.classList.contains("wrong")) return;
+        if (b.classList.contains("wrong")) {
+          b.classList.remove("wrong");
+          b.disabled = true;
+        }
+        if (b.classList.contains("correct") && !data.correct) {
+          // keep correct highlighted but disable
+          b.disabled = true;
+        }
+      });
+      // Re-enable non-chosen buttons
+      btns.forEach(b => {
+        if (parseInt(b.dataset.index) !== chosenIndex && !b.classList.contains("correct")) {
+          b.disabled = false;
+        }
+      });
+    }, 900);
+  }
+}
+
+function unlockVerse(verseIndex) {
+  const token = document.querySelector(`.verse-token[data-index="${verseIndex}"]`);
+  if (token) {
+    token.classList.remove("locked");
+    token.classList.add("unlocked");
+    token.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+</script>
+{% endblock %}
