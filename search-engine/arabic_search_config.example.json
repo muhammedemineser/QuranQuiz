@@ -1,0 +1,68 @@
+{
+  "meili_settings": {
+    "rankingRules": [
+      "words",
+      "exactness",
+      "attribute",
+      "proximity",
+      "typo",
+      "sort"
+    ],
+    "typoTolerance": {
+      "enabled": true,
+      "disableOnAttributes": [
+        "exact_text",
+        "normalized_text",
+        "lemma_text",
+        "stem_text"
+      ],
+      "minWordSizeForTypos": {
+        "oneTypo": 6,
+        "twoTypos": 12
+      }
+    }
+  },
+  "ngram": {
+    "edge_min": 2,
+    "edge_max": 5,
+    "char_min": 3,
+    "char_max": 5
+  },
+  "search_variants": [
+    {
+      "name": "exact",
+      "query_field": "normalized_text",
+      "attributes": ["exact_text", "normalized_text"],
+      "weight": 1.0
+    },
+    {
+      "name": "lemma",
+      "query_field": "lemma_text",
+      "attributes": ["lemma_text"],
+      "weight": 0.8
+    },
+    {
+      "name": "stem",
+      "query_field": "stem_text",
+      "attributes": ["stem_text"],
+      "weight": 0.65
+    },
+    {
+      "name": "edge",
+      "query_field": "edge_query",
+      "attributes": ["edge_ngrams"],
+      "weight": 0.35
+    },
+    {
+      "name": "char",
+      "query_field": "char_query",
+      "attributes": ["char_ngrams"],
+      "weight": 0.25
+    }
+  ],
+  "rerank": {
+    "exact_bonus": 5.0,
+    "lemma_bonus": 2.0,
+    "stem_bonus": 1.0
+  }
+}

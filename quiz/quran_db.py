@@ -10,7 +10,7 @@ from .db_config import *
 
 DB_PATH = Path(__file__).resolve().parent.parent / "quran.db"
 SEARCH_ENGINE_SCRIPT = (
-    Path(__file__).resolve().parents[2] / "classify" / "search-engine" / "arabic_db_search.py"
+    Path(__file__).resolve().parent.parent / "search-engine" / "arabic_db_search.py"
 )
 SEARCH_ENGINE_PYTHON = os.environ.get("QURAN_SEARCH_PYTHON", "python3")
 DISTRACTOR_CACHE_SIZE = 16
@@ -145,4 +145,8 @@ def _cached_distractor_ids(correct_verse_index: int) -> tuple[int, ...]:
 def get_distractors(correct_verse_index: int, n: int = 3):
     """Return n distractor verses using cached search-engine results per verse ID."""
     verse_ids = _cached_distractor_ids(correct_verse_index)[:n]
-    return [verse for verse_id in verse_ids if (verse := get_verse_by_index(verse_id)) is not None]
+    return [
+        verse
+        for verse_id in verse_ids
+        if (verse := get_verse_by_index(verse_id)) is not None
+    ]
