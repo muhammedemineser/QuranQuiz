@@ -25,7 +25,11 @@ def _conn():
 def get_chapters():
     with _conn() as conn:
         return conn.execute(
-            f"SELECT {CHAPTER_NUMBER}, {CHAPTER_NAME} FROM {CHAPTERS_TABLE} ORDER BY {CHAPTER_NUMBER}"
+            f"""SELECT
+                    {CHAPTER_NUMBER} AS chapter_number,
+                    {CHAPTER_NAME} AS chapter_name
+                FROM {CHAPTERS_TABLE}
+                ORDER BY {CHAPTER_NUMBER}"""
         ).fetchall()
 
 
