@@ -130,13 +130,34 @@
   border-radius: var(--radius);
   padding: 0.9rem 1rem;
   color: var(--text);
-  font-family: 'Scheherazade New', serif;
-  font-size: 1.2rem;
   cursor: pointer;
-  text-align: right;
-  direction: rtl;
   transition: all 0.15s;
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  direction: ltr;
+}
+
+.option-index {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.option-text {
+  flex: 1;
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.2rem;
+  text-align: right;
+  direction: rtl;
 }
 
 .option-btn:hover:not(:disabled) {
@@ -223,7 +244,6 @@
 const SURAH = {{ surah_number }};
 const CSRF = "{{ csrf_token }}";
 let correctIndex = null;
-let answeredCorrectly = false;
 
 const modal = document.getElementById("quizModal");
 const optionsEl = document.getElementById("optionsContainer");
@@ -233,6 +253,7 @@ const nextBtn = document.getElementById("nextBtn");
 document.getElementById("playBtn").addEventListener("click", loadQuestion);
 document.getElementById("closeModal").addEventListener("click", () => modal.classList.remove("open"));
 nextBtn.addEventListener("click", loadQuestion);
+document.addEventListener("keydown", handleQuizKeyboard);
 
 async function loadQuestion() {
   nextBtn.style.display = "none";
@@ -249,21 +270,32 @@ async function loadQuestion() {
   }
 
   correctIndex = data.correct_index;
-  answeredCorrectly = false;
   promptEl.textContent = `Verse ${data.verse_number}`;
   optionsEl.innerHTML = "";
 
-  data.options.forEach(opt => {
+  data.options.forEach((opt, index) => {
     const btn = document.createElement("button");
     btn.className = "option-btn";
-    btn.textContent = opt.text;
+    btn.type = "button";
     btn.dataset.index = opt.index;
-    btn.addEventListener("click", () => submitAnswer(opt.index, btn, data.options));
+    btn.dataset.optionNumber = index + 1;
+
+    const indexEl = document.createElement("span");
+    indexEl.className = "option-index";
+    indexEl.textContent = index + 1;
+
+    const textEl = document.createElement("span");
+    textEl.className = "option-text";
+    textEl.textContent = opt.text;
+
+    btn.appendChild(indexEl);
+    btn.appendChild(textEl);
+    btn.addEventListener("click", () => submitAnswer(opt.index, btn));
     optionsEl.appendChild(btn);
   });
 }
 
-async function submitAnswer(chosenIndex, chosenBtn, options) {
+async function submitAnswer(chosenIndex, chosenBtn) {
   const btns = optionsEl.querySelectorAll(".option-btn");
   btns.forEach(b => b.disabled = true);
 
@@ -280,28 +312,11 @@ async function submitAnswer(chosenIndex, chosenBtn, options) {
     nextBtn.style.display = "inline-flex";
   } else {
     chosenBtn.classList.add("wrong");
-    // Highlight correct
-    btns.forEach(b => { if (parseInt(b.dataset.index) === correctIndex) b.classList.add("correct"); });
-    // Re-enable all after short delay for retry (except correct)
-    setTimeout(() => {
-      btns.forEach(b => {
-        if (!b.classList.contains("correct") && !b.classList.contains("wrong")) return;
-        if (b.classList.contains("wrong")) {
-          b.classList.remove("wrong");
-          b.disabled = true;
-        }
-        if (b.classList.contains("correct") && !data.correct) {
-          // keep correct highlighted but disable
-          b.disabled = true;
-        }
-      });
-      // Re-enable non-chosen buttons
-      btns.forEach(b => {
-        if (parseInt(b.dataset.index) !== chosenIndex && !b.classList.contains("correct")) {
-          b.disabled = false;
-        }
-      });
-    }, 900);
+    btns.forEach(b => {
+      if (b !== chosenBtn && !b.classList.contains("wrong")) {
+        b.disabled = false;
+      }
+    });
   }
 }
 
@@ -312,6 +327,27 @@ function unlockVerse(verseIndex) {
     token.classList.add("unlocked");
     token.scrollIntoView({ behavior: "smooth", block: "center" });
   }
+}
+
+function handleQuizKeyboard(event) {
+  if (!modal.classList.contains("open")) return;
+
+  if (event.key === "Enter") {
+    if (nextBtn.style.display !== "none") {
+      event.preventDefault();
+      nextBtn.click();
+    }
+    return;
+  }
+
+  if (!/^[1-9]$/.test(event.key)) return;
+
+  const optionNumber = parseInt(event.key, 10);
+  const btn = optionsEl.querySelector(`.option-btn[data-option-number="${optionNumber}"]`);
+  if (!btn || btn.disabled) return;
+
+  event.preventDefault();
+  btn.click();
 }
 </script>
 {% endblock %}
