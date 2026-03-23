@@ -14,12 +14,31 @@ SEARCH_ENGINE_SCRIPT = (
 )
 SEARCH_ENGINE_PYTHON = os.environ.get("QURAN_SEARCH_PYTHON", "python3")
 DISTRACTOR_CACHE_SIZE = 16
+PRECOMPUTED_DISTRACTOR_CACHE_PATH = Path(
+    os.environ.get(
+        "QURAN_DISTRACTOR_CACHE",
+        Path(__file__).resolve().parent / ".cache" / "distractor_cache.json",
+    )
+)
 
 
 def _conn():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+@lru_cache(maxsize=1)
+def _load_precomputed_distractor_cache() -> dict[int, tuple[int, ...]]:
+    if not PRECOMPUTED_DISTRACTOR_CACHE_PATH.exists():
+        return {}
+
+    payload = json.loads(PRECOMPUTED_DISTRACTOR_CACHE_PATH.read_text(encoding="utf-8"))
+    entries = payload.get("distractors", {})
+    return {
+        int(source_id): tuple(int(value) for value in distractor_ids)
+        for source_id, distractor_ids in entries.items()
+    }
 
 
 def get_chapters():
@@ -128,6 +147,10 @@ def _fallback_distractor_ids(correct_verse_index: int, target_text: str) -> list
 
 @lru_cache(maxsize=2048)
 def _cached_distractor_ids(correct_verse_index: int) -> tuple[int, ...]:
+    precomputed = _load_precomputed_distractor_cache().get(correct_verse_index)
+    if precomputed:
+        return precomputed[:DISTRACTOR_CACHE_SIZE]
+
     target = get_verse_by_index(correct_verse_index)
     if not target:
         return ()

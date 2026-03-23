@@ -41,6 +41,49 @@
   transform: translateX(0);
 }
 
+.sidebar-search {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.sidebar-search-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.75rem;
+  color: var(--text);
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  direction: rtl;
+}
+
+.sidebar-search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.sidebar-search-input:focus {
+  outline: none;
+  border-color: var(--gold-dim);
+}
+
+.sidebar-empty {
+  display: none;
+  padding: 1rem;
+  color: var(--text-dim);
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  direction: ltr;
+}
+
+.sidebar-empty.visible {
+  display: block;
+}
+
 .mushaf-header {
   display: flex;
   align-items: flex-start;
@@ -365,13 +408,27 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 <div class="sidebar mushaf-sidebar" id="surahSidebar">
   <div class="sidebar-header">Surahs</div>
+  <div class="sidebar-search">
+    <input
+      id="surahSearch"
+      class="sidebar-search-input"
+      type="text"
+      inputmode="search"
+      autocomplete="off"
+      placeholder="Suche nach Nummer oder Name"
+      aria-label="Search surahs"
+    >
+  </div>
   {% for ch in chapters %}
   <a href="?surah={{ ch.chapter_number }}"
+     data-surah-number="{{ ch.chapter_number }}"
+     data-surah-name="{{ ch.chapter_name }}"
      class="{% if ch.chapter_number == surah_number %}active{% endif %}">
     <span class="num">{{ ch.chapter_number }}</span>
     {{ ch.chapter_name }}
   </a>
   {% endfor %}
+  <div class="sidebar-empty" id="surahSearchEmpty">No surah found</div>
 </div>
 {% endblock %}
 
@@ -436,6 +493,9 @@ const recentVersesEl = document.getElementById("recentVerses");
 const sidebar = document.getElementById("surahSidebar");
 const sidebarToggle = document.getElementById("sidebarToggle");
 const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+const surahSearchInput = document.getElementById("surahSearch");
+const surahSearchEmpty = document.getElementById("surahSearchEmpty");
+const surahLinks = sidebar ? Array.from(sidebar.querySelectorAll("a[data-surah-number]")) : [];
 
 document.getElementById("playBtn").addEventListener("click", loadQuestion);
 document.getElementById("closeModal").addEventListener("click", () => modal.classList.remove("open"));
@@ -461,6 +521,10 @@ if (sidebarToggle && sidebar && sidebarBackdrop) {
       closeSidebar();
     }
   });
+}
+
+if (surahSearchInput && surahLinks.length) {
+  surahSearchInput.addEventListener("input", filterSurahs);
 }
 
 async function loadQuestion() {
@@ -609,6 +673,26 @@ function closeSidebar() {
   sidebarBackdrop.classList.remove("open");
   sidebarToggle.setAttribute("aria-expanded", "false");
   document.body.style.overflow = "";
+}
+
+function filterSurahs() {
+  const rawQuery = surahSearchInput.value.trim();
+  const query = rawQuery.toLowerCase();
+  const isNumberQuery = /^\d+$/.test(rawQuery);
+  let visibleCount = 0;
+
+  surahLinks.forEach(link => {
+    const number = link.dataset.surahNumber || "";
+    const name = (link.dataset.surahName || "").toLowerCase();
+    const matches = !query || (isNumberQuery ? number === rawQuery : name.includes(query));
+
+    link.style.display = matches ? "" : "none";
+    if (matches) visibleCount += 1;
+  });
+
+  if (surahSearchEmpty) {
+    surahSearchEmpty.classList.toggle("visible", visibleCount === 0);
+  }
 }
 </script>
 {% endblock %}

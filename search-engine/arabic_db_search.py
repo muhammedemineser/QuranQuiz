@@ -24,6 +24,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_CACHE_DIR = SCRIPT_DIR / ".cache" / "arabic-meili"
 DEFAULT_OUTPUT_PATH = SCRIPT_DIR / "arabic_matches.json"
 DEFAULT_QURAN_DB_PATH = SCRIPT_DIR.parent.parent / "QuranQuizz" / "quran.db"
+DEFAULT_MEILI_SEARCH_KEY = "R-7tY1HRppmDgdXvbH3c8ZXVbckFOVd68D8aHgTX6Mk"
 
 
 DEFAULT_CONFIG: dict[str, Any] = {
@@ -1420,7 +1421,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="http://127.0.0.1:7700",
         help="Local Meilisearch URL.",
     )
-    parser.add_argument("--meili-key", default=None, help="Optional Meilisearch master key.")
+    parser.add_argument(
+        "--meili-key",
+        default=DEFAULT_MEILI_SEARCH_KEY,
+        help="Optional Meilisearch API key for search requests.",
+    )
     parser.add_argument(
         "--config",
         default=None,

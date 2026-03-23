@@ -58,3 +58,13 @@ quran_quiz/
 - **Progress**: Per-user, per-surah — stored in `SurahProgress` model
 - **Progress page**: Progress bars per surah + reset per-surah or all
 - **Auth**: Django built-in User + login/register pages
+
+## Optional: Precompute Distractors
+
+If you want QuranQuiz to run without a live Meilisearch Docker container during normal app usage, you can precompute the distractor cache once:
+
+```bash
+python3 build_distractor_cache.py
+```
+
+This writes `quiz/.cache/distractor_cache.json`. After that, `quiz/quran_db.py` will prefer the precomputed cache and only fall back to live search or F1 ranking when the cache is missing.
