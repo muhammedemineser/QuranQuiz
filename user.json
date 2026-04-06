@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "quran_user_1",
+      "name": "Quran User 1"
+    },
+    {
+      "id": "2",
+      "username": "quran_user_2",
+      "name": "Quran User 2"
+    },
+    {
+      "id": "3",
+      "username": "quran_user_3",
+      "name": "Quran User 3"
+    },
+    {
+      "username": "emin",
+      "id": "RwF45iV0L3A"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

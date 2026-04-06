@@ -13,45 +13,31 @@ Wenn dein Repo anders heißt, ist das Muster:
 Im Root liegt die statische, deploybare App (GitHub Pages tauglich):
 
 - `index.html` UI-Entry
-- `styles.css` Styling inkl. Security-Warnungen
+- `styles.css` Styling
 - `app.mjs` Hauptlogik (Login, Surah-Rendering, Quiz, Progress)
 - `quizLogic.mjs` Kernalgorithmus (Question/Answer/Progress)
-- `userSync.mjs` MockAPI-User-Sync inkl. POST-Seeding
+- `userSync.mjs` User-Sync-Hilfsfunktionen
+- `user.json` User-Daten für json-server
 - `data/quran-data.json` statischer Quran-Datensatz für Frontend
-- `tests/*.mjs` Node-Tests für Kernlogik und User-Seeding
+- `tests/*.mjs` Node-Tests für Kernlogik und User-Sync
 - `django-project/` ursprüngliches Django-Backend + Originaldaten
 
-## Sicherheitshinweis
-**Dringend:** Diese App ist ein Playground mit MockAPI und LocalStorage.
-
-- Keine sichere Datenablage
-- Keine verschlüsselten Secrets
-- Keine produktionsreife Authentifizierung
-- Alle Eingaben als potenziell öffentlich/unsicher behandeln
-
-**Bitte niemals sensible Daten eingeben**, insbesondere keine:
-
-- echten Passwörter
-- persönlichen Daten
-- produktiven Accounts
-- Tokens, API-Keys, vertraulichen Inhalte
-
-Nur Mock-Namen und Mock-Passwörter verwenden.
-
-## Frontend (Static Playground)
+## Frontend (Static App)
 ### Start lokal
 ```bash
-cd /home/muhammed-emin-eser/desk/projects/QuranQuiz
-python3 -m http.server 8080
-```
-Dann `http://localhost:8080` öffnen.
+# Terminal 1 — json-server (Port 3000)
+npx json-server user.json
 
-### MockAPI-Flow
-- Endpoint: `https://69d3a8f6336103955f8f653b.mockapi.io/quranquiz/users`
+# Terminal 2 — statischer Dev-Server
+npx serve .
+```
+Dann `http://localhost:3000` (oder den Port des Dev-Servers) öffnen.
+
+### User-Flow
+- Endpoint: `http://localhost:3000/users` (json-server)
 - App ruft `GET /users` auf
-- Falls leer: App sendet Seed-User per `POST /users`
-- Danach erneutes `GET /users`
 - Ergebnis wird in `localStorage` gecacht
+- Login mit einem der Usernamen aus `user.json`
 
 ## Backend (Django) mit HASM-Bezug
 Der Ordner `django-project/` enthält das ursprüngliche Backend. Für die Beschreibung nutze ich HASM als Architektur-Linse:

@@ -4,18 +4,11 @@ import {
   applyCorrectAnswer,
   computeSurahProgress,
 } from './quizLogic.mjs';
-import { seedUsersIfEmpty } from './userSync.mjs';
 
-const USERS_API_URL = 'https://69d3a8f6336103955f8f653b.mockapi.io/quranquiz/users';
+const USERS_API_URL = 'http://localhost:3000/users';
 const USERS_CACHE_KEY = 'quranquiz_users_cache_v1';
-const USERS_CACHE_TS_KEY = 'quranquiz_users_cache_ts_v1';
 const QURAN_CACHE_KEY = 'quranquiz_quran_cache_v1';
 const SESSION_KEY = 'quranquiz_session_user_v1';
-const DEFAULT_SEED_USERS = [
-  { username: 'quran_user_1', name: 'Quran User 1' },
-  { username: 'quran_user_2', name: 'Quran User 2' },
-  { username: 'quran_user_3', name: 'Quran User 3' },
-];
 
 const state = {
   users: [],
@@ -31,6 +24,11 @@ const appView = document.getElementById('appView');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 const usernameInput = document.getElementById('username');
+const registerBox = document.getElementById('registerBox');
+const registerForm = document.getElementById('registerForm');
+const registerError = document.getElementById('registerError');
+const regUsernameInput = document.getElementById('regUsername');
+const backToLoginBtn = document.getElementById('backToLoginBtn');
 const navActions = document.getElementById('navActions');
 const surahList = document.getElementById('surahList');
 const surahSearch = document.getElementById('surahSearch');
@@ -79,10 +77,13 @@ async function loadUsersToCache() {
     return;
   }
 
-  const users = await seedUsersIfEmpty(USERS_API_URL, DEFAULT_SEED_USERS);
+  const response = await fetch(USERS_API_URL, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error('users fetch failed');
+  }
+  const users = await response.json();
   state.users = users;
   localStorage.setItem(USERS_CACHE_KEY, JSON.stringify(users));
-  localStorage.setItem(USERS_CACHE_TS_KEY, String(Date.now()));
 }
 
 async function loadQuranToCache() {
@@ -118,11 +119,57 @@ loginForm.addEventListener('submit', (event) => {
   });
 
   if (!user) {
-    loginError.textContent = 'User nicht im Cache gefunden. Prüfe MockAPI-Daten.';
+    loginError.textContent = 'User nicht gefunden. Registriere dich hier:';
+    regUsernameInput.value = usernameInput.value.trim();
+    registerBox.hidden = false;
     return;
   }
 
   setCurrentUser(user);
+  showApp();
+});
+
+backToLoginBtn.addEventListener('click', () => {
+  registerBox.hidden = true;
+  registerError.textContent = '';
+  loginError.textContent = '';
+});
+
+registerForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  registerError.textContent = '';
+
+  const username = regUsernameInput.value.trim();
+  if (!username) {
+    registerError.textContent = 'Username erforderlich.';
+    return;
+  }
+
+  const exists = state.users.some(
+    (u) => String(u.username || '').toLowerCase() === username.toLowerCase(),
+  );
+  if (exists) {
+    registerError.textContent = 'Username bereits vergeben.';
+    return;
+  }
+
+  const response = await fetch(USERS_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username }),
+  });
+
+  if (!response.ok) {
+    registerError.textContent = 'Registrierung fehlgeschlagen.';
+    return;
+  }
+
+  const newUser = await response.json();
+  state.users.push(newUser);
+  localStorage.setItem(USERS_CACHE_KEY, JSON.stringify(state.users));
+
+  registerBox.hidden = true;
+  setCurrentUser(newUser);
   showApp();
 });
 
