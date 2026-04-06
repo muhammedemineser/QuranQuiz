@@ -52,6 +52,13 @@ const modalPrompt = document.getElementById('modalPrompt');
 const optionList = document.getElementById('optionList');
 const nextBtn = document.getElementById('nextBtn');
 const closeModalBtn = document.getElementById('closeModalBtn');
+const burgerBtn = document.getElementById('burgerBtn');
+const sidebar = document.querySelector('.sidebar');
+
+burgerBtn.addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+  burgerBtn.classList.toggle('open');
+});
 
 bootstrap().catch((error) => {
   console.error(error);
