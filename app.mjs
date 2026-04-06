@@ -5,7 +5,7 @@ import {
   computeSurahProgress,
 } from './quizLogic.mjs';
 
-const USERS_API_URL = 'http://localhost:3000/users';
+const USERS_API_URL = 'https://sluglike-clarence-agential.ngrok-free.dev/users';
 const USERS_CACHE_KEY = 'quranquiz_users_cache_v1';
 const QURAN_CACHE_KEY = 'quranquiz_quran_cache_v1';
 const DISTRACTOR_CACHE_KEY = 'quranquiz_distractor_cache_v1';
