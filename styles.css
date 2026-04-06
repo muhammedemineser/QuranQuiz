@@ -1,0 +1,413 @@
+* { box-sizing: border-box; }
+
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --surface2: #1e1e1e;
+  --border: #2a2a2a;
+  --gold: #c9a84c;
+  --gold-dim: #8a6f2e;
+  --text: #e8e0d0;
+  --text-dim: #7a7060;
+  --correct: #2d6a4f;
+  --wrong: #6b1f1f;
+  --radius: 8px;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Amiri, serif;
+}
+
+.security-banner {
+  background: #7a1111;
+  color: #ffe7e7;
+  border-bottom: 1px solid #b33;
+  padding: 10px 16px;
+  font-family: sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  padding: 12px 16px;
+}
+
+.brand {
+  color: var(--gold);
+  font-family: "Scheherazade New", serif;
+  font-size: 24px;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.main-shell {
+  min-height: calc(100vh - 60px);
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: flex;
+}
+
+#loginView {
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 60px);
+  padding: 16px;
+}
+
+.auth-box {
+  width: min(100%, 380px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 20px;
+}
+
+.security-box {
+  border: 1px solid #b33;
+  background: #331313;
+  color: #ffd9d9;
+  border-radius: var(--radius);
+  padding: 10px;
+  margin-bottom: 12px;
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.auth-title {
+  margin: 0 0 12px;
+  color: var(--gold);
+  font-family: "Scheherazade New", serif;
+  text-align: center;
+}
+
+.hint {
+  margin: 0 0 12px;
+  color: var(--text-dim);
+  font-family: sans-serif;
+  font-size: 13px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: sans-serif;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+input {
+  width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  padding: 10px;
+}
+
+.error-msg {
+  margin: 10px 0 0;
+  color: #f3a0a0;
+  font-family: sans-serif;
+  font-size: 13px;
+  min-height: 18px;
+}
+
+#appView {
+  display: none;
+}
+
+#appView.active {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 60px);
+}
+
+.sidebar {
+  width: 240px;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  padding: 10px;
+}
+
+.sidebar-title {
+  font-family: sans-serif;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.search {
+  margin-bottom: 8px;
+}
+
+.surah-list {
+  overflow: auto;
+  max-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.surah-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-dim);
+  padding: 8px;
+  cursor: pointer;
+  text-align: right;
+}
+
+.surah-item.active,
+.surah-item:hover {
+  border-color: var(--border);
+  background: var(--surface2);
+  color: var(--gold);
+}
+
+.surah-item .num {
+  font-family: sans-serif;
+  font-size: 12px;
+  min-width: 20px;
+}
+
+.content-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+}
+
+.surah-name {
+  color: var(--gold);
+  font-family: "Scheherazade New", serif;
+  font-size: 28px;
+}
+
+.user-badge {
+  font-family: sans-serif;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.panel {
+  display: none;
+  padding: 16px;
+}
+
+.panel.active {
+  display: block;
+}
+
+.basmala {
+  text-align: center;
+  margin-bottom: 14px;
+  color: var(--gold);
+  font-family: "Scheherazade New", serif;
+  font-size: 34px;
+}
+
+.verse-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  line-height: 2;
+  direction: rtl;
+}
+
+.verse {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.verse.unlocked {
+  background: var(--surface2);
+}
+
+.verse.locked {
+  filter: blur(3px);
+  color: #666;
+}
+
+.verse-num {
+  font-family: sans-serif;
+  font-size: 11px;
+  color: var(--gold-dim);
+}
+
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-rows {
+  margin-top: 12px;
+}
+
+.progress-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px 50px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bar {
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-card {
+  width: min(100%, 620px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 16px;
+}
+
+.modal-title,
+.modal-prompt {
+  font-family: sans-serif;
+  margin-bottom: 10px;
+  color: var(--text-dim);
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option-btn {
+  width: 100%;
+  text-align: right;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  padding: 10px;
+  cursor: pointer;
+}
+
+.option-btn.correct {
+  background: var(--correct);
+}
+
+.option-btn.wrong {
+  background: var(--wrong);
+}
+
+.modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-family: sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-gold {
+  background: var(--gold);
+  color: #111;
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+
+@media (max-width: 900px) {
+  #appView.active {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-left: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .surah-list {
+    max-height: 220px;
+  }
+
+  .progress-row {
+    grid-template-columns: 35px 1fr 50px 40px;
+  }
+}

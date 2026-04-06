@@ -42,6 +42,21 @@ class BuildDistractorCacheTests(SimpleTestCase):
         self.assertEqual(len(distractor_map[1]), 2)
         self.assertGreater(reranked_total, 0)
 
+    def test_build_seqmatcher_distractor_map_excludes_identical_normalized_text(self):
+        rows = [
+            (1, "foo bar"),
+            (2, "foo bar"),
+            (3, "foo baz"),
+        ]
+        distractor_map, _ = build_distractor_cache.build_seqmatcher_distractor_map(
+            rows,
+            top_k=2,
+            fetch_k=3,
+            normalize_fn=lambda text: text.strip().lower(),
+            score_fn=lambda reference, candidate: 1.0,
+        )
+        self.assertNotIn(2, distractor_map[1])
+
     def test_build_cache_payload_shapes_output(self):
         rows = [(1, "foo bar"), (2, "foo baz"), (3, "bar baz")]
 
@@ -77,3 +92,19 @@ class QuranDbCacheTests(SimpleTestCase):
                 result = quran_db._cached_distractor_ids(100)
 
             self.assertEqual(result, (201, 202, 203))
+
+    def test_get_distractors_excludes_duplicate_option_texts(self):
+        fake_cache = {100: (201, 202, 203)}
+        verses = {
+            100: {quran_db.VERSE_TEXT_AR: "same text"},
+            201: {quran_db.VERSE_TEXT_AR: "same text"},
+            202: {quran_db.VERSE_TEXT_AR: "unique one"},
+            203: {quran_db.VERSE_TEXT_AR: "unique two"},
+        }
+
+        with mock.patch.object(quran_db, "_cached_distractor_ids", return_value=fake_cache[100]):
+            with mock.patch.object(quran_db, "get_verse_by_index", side_effect=lambda idx: verses.get(idx)):
+                result = quran_db.get_distractors(100, n=3)
+
+        texts = [row[quran_db.VERSE_TEXT_AR] for row in result]
+        self.assertEqual(texts, ["unique one", "unique two"])

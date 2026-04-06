@@ -141,10 +141,16 @@ def build_seqmatcher_distractor_map(
 
         reranked: list[tuple[float, int]] = []
         reference = normalized_by_id[verse_id]
+        seen_texts: set[str] = set()
         for other_id in shortlist:
             candidate = normalized_by_id.get(other_id)
             if not candidate:
                 continue
+            if candidate == reference:
+                continue
+            if candidate in seen_texts:
+                continue
+            seen_texts.add(candidate)
             score = score_fn(reference, candidate)
             reranked.append((float(score), int(other_id)))
 

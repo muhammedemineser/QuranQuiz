@@ -83,9 +83,23 @@ def _cached_distractor_ids(correct_verse_index: int) -> tuple[int, ...]:
 
 def get_distractors(correct_verse_index: int, n: int = 3):
     """Return n distractor verses using precomputed cache per verse ID."""
-    verse_ids = _cached_distractor_ids(correct_verse_index)[:n]
-    return [
-        verse
-        for verse_id in verse_ids
-        if (verse := get_verse_by_index(verse_id)) is not None
-    ]
+    correct_verse = get_verse_by_index(correct_verse_index)
+    correct_text = ""
+    if correct_verse is not None and correct_verse[VERSE_TEXT_AR] is not None:
+        correct_text = str(correct_verse[VERSE_TEXT_AR]).strip()
+
+    selected = []
+    seen_texts = {correct_text} if correct_text else set()
+    for verse_id in _cached_distractor_ids(correct_verse_index):
+        verse = get_verse_by_index(verse_id)
+        if verse is None:
+            continue
+        verse_text = str(verse[VERSE_TEXT_AR]).strip() if verse[VERSE_TEXT_AR] is not None else ""
+        if verse_text and verse_text in seen_texts:
+            continue
+        if verse_text:
+            seen_texts.add(verse_text)
+        selected.append(verse)
+        if len(selected) >= n:
+            break
+    return selected

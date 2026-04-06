@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quran Quiz (Plain JS)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="security-banner" dir="ltr">
+    SECURITY WARNING: Playground only. Do not use real personal, sensitive, or production credentials.
+  </div>
+  <nav class="top-nav" dir="ltr">
+    <div class="brand">Quran Quiz</div>
+    <div class="nav-actions" id="navActions"></div>
+  </nav>
+
+  <main class="main-shell">
+    <section id="loginView" class="view active" dir="ltr">
+      <div class="auth-box">
+        <div class="security-box" role="alert">
+          <strong>Wichtiger Sicherheitshinweis:</strong>
+          Diese App ist ein Playground und nutzt MockAPI.
+          Zugangsdaten werden nicht sicher verwahrt.
+          Bitte auf keinen Fall sensible Daten, echte Namen, echte Passwörter oder persönliche Informationen eingeben.
+          Verwende ausschließlich Mock-Namen und Mock-Passwörter.
+        </div>
+        <h1 class="auth-title" dir="rtl">تسجيل الدخول</h1>
+        <p class="hint">Username aus MockAPI (`users`) eingeben.</p>
+        <form id="loginForm">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required>
+          <button class="btn btn-gold" type="submit">Login</button>
+        </form>
+        <p id="loginError" class="error-msg"></p>
+      </div>
+    </section>
+
+    <section id="appView" class="view" dir="ltr">
+      <aside class="sidebar">
+        <div class="sidebar-title">Surahs</div>
+        <input id="surahSearch" class="search" type="text" placeholder="Search surah">
+        <div id="surahList" class="surah-list"></div>
+      </aside>
+
+      <div class="content-wrap">
+        <header class="content-header">
+          <div>
+            <div class="surah-name" id="surahName">-</div>
+            <div class="user-badge" id="userBadge">-</div>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-outline" id="openProgressBtn" type="button">Progress</button>
+            <button class="btn btn-gold" id="playBtn" type="button">Play</button>
+          </div>
+        </header>
+
+        <section id="mushafPanel" class="panel active">
+          <div class="basmala" id="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+          <div id="verseGrid" class="verse-grid"></div>
+        </section>
+
+        <section id="progressPanel" class="panel">
+          <div class="progress-head">
+            <h2>Progress</h2>
+            <button class="btn btn-outline" id="resetAllBtn" type="button">Reset All</button>
+          </div>
+          <div id="progressRows" class="progress-rows"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div id="quizModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-title">Select the next verse</div>
+      <div class="modal-prompt" id="modalPrompt"></div>
+      <div id="optionList" class="option-list"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="closeModalBtn" type="button">Close</button>
+        <button class="btn btn-gold" id="nextBtn" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/app.mjs"></script>
+</body>
+</html>

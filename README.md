@@ -1,70 +1,118 @@
-# Quran Quiz – Django App
+# QuranQuiz
 
-## Setup
+## GitHub Pages
+Die statische Playground-Version ist hier erreichbar:
 
+- `https://<github-username>.github.io/QuranQuiz/`
+
+Wenn dein Repo anders heißt, ist das Muster:
+
+- `https://<github-username>.github.io/<repo-name>/`
+
+## Project Root
+Im Root liegt die statische, deploybare App (GitHub Pages tauglich):
+
+- `index.html` UI-Entry
+- `styles.css` Styling inkl. Security-Warnungen
+- `app.mjs` Hauptlogik (Login, Surah-Rendering, Quiz, Progress)
+- `quizLogic.mjs` Kernalgorithmus (Question/Answer/Progress)
+- `userSync.mjs` MockAPI-User-Sync inkl. POST-Seeding
+- `data/quran-data.json` statischer Quran-Datensatz für Frontend
+- `tests/*.mjs` Node-Tests für Kernlogik und User-Seeding
+- `django-project/` ursprüngliches Django-Backend + Originaldaten
+
+## Sicherheitshinweis
+**Dringend:** Diese App ist ein Playground mit MockAPI und LocalStorage.
+
+- Keine sichere Datenablage
+- Keine verschlüsselten Secrets
+- Keine produktionsreife Authentifizierung
+- Alle Eingaben als potenziell öffentlich/unsicher behandeln
+
+**Bitte niemals sensible Daten eingeben**, insbesondere keine:
+
+- echten Passwörter
+- persönlichen Daten
+- produktiven Accounts
+- Tokens, API-Keys, vertraulichen Inhalte
+
+Nur Mock-Namen und Mock-Passwörter verwenden.
+
+## Frontend (Static Playground)
+### Start lokal
 ```bash
-pip install django
-python manage.py migrate
-python manage.py createsuperuser  # optional
-python manage.py runserver
+cd /home/muhammed-emin-eser/desk/projects/QuranQuiz
+python3 -m http.server 8080
 ```
+Dann `http://localhost:8080` öffnen.
 
-## Required: quran.db
+### MockAPI-Flow
+- Endpoint: `https://69d3a8f6336103955f8f653b.mockapi.io/quranquiz/users`
+- App ruft `GET /users` auf
+- Falls leer: App sendet Seed-User per `POST /users`
+- Danach erneutes `GET /users`
+- Ergebnis wird in `localStorage` gecacht
 
-Place your `quran.db` in the project root (next to `manage.py`).
+## Backend (Django) mit HASM-Bezug
+Der Ordner `django-project/` enthält das ursprüngliche Backend. Für die Beschreibung nutze ich HASM als Architektur-Linse:
 
-Expected schema (configurable in `quiz/db_config.py`):
+- `H = HTTP/Handlers`
+- `A = Authentication`
+- `S = State`
+- `M = Model`
 
-```sql
-CREATE TABLE chapters (
-    chapter_number INTEGER PRIMARY KEY,
-    chapter_name   TEXT
-);
+### H: HTTP/Handlers
+Dateien:
 
-CREATE TABLE verses (
-    verse_index    INTEGER PRIMARY KEY,
-    surah_number   INTEGER,
-    verse_number   INTEGER,
-    text_ar        TEXT,
-    text_en        TEXT
-);
-```
+- `django-project/quiz/urls.py`
+- `django-project/quiz/views.py`
 
-## Structure
+Zentrale Routen:
 
-```
-quran_quiz/
-├── manage.py
-├── quran.db          ← your DB goes here
-├── db.sqlite3        ← Django app DB (users, progress)
-├── quiz/
-│   ├── db_config.py  ← all table/column names
-│   ├── quran_db.py   ← all raw SQL queries + F1 distractor logic
-│   ├── models.py     ← SurahProgress
-│   ├── views.py
-│   ├── urls.py
-│   └── templates/quiz/
-│       ├── base.html
-│       ├── auth.html
-│       ├── mushaf.html
-│       └── progress.html
-```
+- `/` Mushaf-Ansicht
+- `/login/`, `/register/`, `/logout/`
+- `/progress/`
+- `/api/question/` nächste Frage
+- `/api/answer/` Antwort prüfen + Unlock
+- `/api/reset/` Fortschritt resetten
 
-## Features
+### A: Authentication
+Django-Auth wird serverseitig genutzt:
 
-- **Mushaf view**: Verses blurred/locked until unlocked via quiz
-- **Quiz**: Multiple choice, 4 options — distractors ranked by F1 word overlap
-- **Wrong answer**: Other options remain for retry; correct answer highlighted
-- **Progress**: Per-user, per-surah — stored in `SurahProgress` model
-- **Progress page**: Progress bars per surah + reset per-surah or all
-- **Auth**: Django built-in User + login/register pages
+- `UserCreationForm` (Register)
+- `AuthenticationForm` (Login)
+- `login_required` schützt Mushaf/Progress/API
 
-## Optional: Precompute Distractors
+Das ist der zentrale Unterschied zur statischen Version:
 
-If you want QuranQuiz to run without a live Meilisearch Docker container during normal app usage, you can precompute the distractor cache once:
+- Django: serverseitige Session/Auth
+- Static Playground: clientseitiger Mock-Login (nicht sicher)
 
-```bash
-python3 build_distractor_cache.py
-```
+### S: State
+Lernfortschritt wird pro User und Surah gespeichert:
 
-This writes `quiz/.cache/distractor_cache.json`. After that, `quiz/quran_db.py` will prefer the precomputed cache and only fall back to live search or F1 ranking when the cache is missing.
+- Model: `SurahProgress(user, surah_number, unlocked_up_to)`
+- Unlock-Regel: Bei korrekter Antwort wird `unlocked_up_to` erhöht
+- Progress-Ansicht berechnet pro Surah den prozentualen Stand
+
+### M: Model + Datenzugriff
+Persistenzquellen im Django-Projekt:
+
+- `db.sqlite3` für Django-App-Daten (User + Progress)
+- `quran.db` für Quran-Inhalt
+
+Datenzugriff:
+
+- `quiz/quran_db.py` liest Kapitel/Verse aus `quran.db`
+- `quiz/models.py` enthält `SurahProgress`
+- `quiz/db_config.py` kapselt Tabellen-/Spaltennamen
+
+### Distractor/Quiz-Logik im Backend
+- `quiz/quran_db.py` nutzt precomputed Distractor-Cache (`quiz/.cache/distractor_cache.json`), falls vorhanden
+- `build_distractor_cache.py` kann Cache vorab erzeugen
+- API liefert Frageoptionen und validiert Antworten serverseitig
+
+## Unterschiede: Static vs Django
+- Static App ist deploybar auf GitHub Pages, aber nicht sicherheitskritisch nutzbar
+- Django-App ist strukturierter für echte Backend-Flows (Auth, persistenter State, serverseitige APIs)
+- Für Produktion wäre ein echtes Security-Setup nötig (HTTPS-Policies, Secret-Handling, harte Auth, Input-Härtung, Monitoring)
