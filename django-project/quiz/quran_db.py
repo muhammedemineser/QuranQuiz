@@ -10,7 +10,7 @@ DISTRACTOR_CACHE_SIZE = 16
 PRECOMPUTED_DISTRACTOR_CACHE_PATH = Path(
     os.environ.get(
         "QURAN_DISTRACTOR_CACHE",
-        Path(__file__).resolve().parent / ".cache" / "distractor_cache.json",
+        Path(__file__).resolve().parent / "cache" / "distractor_cache.json",
     )
 )
 

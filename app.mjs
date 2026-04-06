@@ -125,7 +125,7 @@ async function loadDistractorCache() {
     return;
   }
 
-  const response = await fetch('./django-project/quiz/.cache/distractor_cache.json', { cache: 'force-cache' });
+  const response = await fetch('./django-project/quiz/cache/distractor_cache.json', { cache: 'force-cache' });
   if (!response.ok) {
     console.warn('Distractor cache nicht gefunden – fällt auf Zufallsauswahl zurück.');
     return;

@@ -13,7 +13,7 @@ from quiz.db_config import VERSES_TABLE, VERSE_INDEX, VERSE_TEXT_AR
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_DB_PATH = PROJECT_ROOT / "quran.db"
-DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "quiz" / ".cache" / "distractor_cache.json"
+DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "quiz" / "cache" / "distractor_cache.json"
 
 
 def build_parser() -> argparse.ArgumentParser:

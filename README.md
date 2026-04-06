@@ -94,7 +94,7 @@ Datenzugriff:
 - `quiz/db_config.py` kapselt Tabellen-/Spaltennamen
 
 ### Distractor/Quiz-Logik im Backend
-- `quiz/quran_db.py` nutzt precomputed Distractor-Cache (`quiz/.cache/distractor_cache.json`), falls vorhanden
+- `quiz/quran_db.py` nutzt precomputed Distractor-Cache (`quiz/cache/distractor_cache.json`), falls vorhanden
 - `build_distractor_cache.py` kann Cache vorab erzeugen
 - API liefert Frageoptionen und validiert Antworten serverseitig
 

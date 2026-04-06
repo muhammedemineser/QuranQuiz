@@ -67,4 +67,4 @@ If you want QuranQuiz to run without a live Meilisearch Docker container during 
 python3 build_distractor_cache.py
 ```
 
-This writes `quiz/.cache/distractor_cache.json`. After that, `quiz/quran_db.py` will prefer the precomputed cache and only fall back to live search or F1 ranking when the cache is missing.
+This writes `quiz/cache/distractor_cache.json`. After that, `quiz/quran_db.py` will prefer the precomputed cache and only fall back to live search or F1 ranking when the cache is missing.

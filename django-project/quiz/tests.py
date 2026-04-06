@@ -87,8 +87,8 @@ class QuranDbCacheTests(SimpleTestCase):
             )
 
             with mock.patch.object(quran_db, "PRECOMPUTED_DISTRACTOR_CACHE_PATH", cache_path):
-                quran_db._load_precomputed_distractor_cache.cache_clear()
-                quran_db._cached_distractor_ids.cache_clear()
+                quran_db._load_precomputed_distractor_cachecache_clear()
+                quran_db._cached_distractor_idscache_clear()
                 result = quran_db._cached_distractor_ids(100)
 
             self.assertEqual(result, (201, 202, 203))
