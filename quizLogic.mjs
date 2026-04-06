@@ -16,10 +16,36 @@ export function getNextLockedVerse(verses, unlockedUpTo) {
   return null;
 }
 
-export function buildQuestionOptions(verses, correctVerse, size = 4) {
-  const distractors = verses.filter((verse) => verse.verse_index !== correctVerse.verse_index);
-  const shuffledDistractors = shuffleInPlace(distractors).slice(0, Math.max(0, size - 1));
-  return shuffleInPlace([correctVerse, ...shuffledDistractors]);
+/**
+ * Builds answer options for a quiz question.
+ *
+ * @param {object} correctVerse - The verse to unlock next.
+ * @param {object} allVersesByIndex - Flat map of verse_index → verse (all surahs).
+ * @param {object} distractorCache - Map of verse_index (string) → number[] from the precomputed cache.
+ * @param {number} size - Total number of options including the correct one.
+ */
+export function buildQuestionOptions(correctVerse, allVersesByIndex, distractorCache, size = 4) {
+  const cachedIndices = distractorCache[String(correctVerse.verse_index)] ?? [];
+
+  const distractors = [];
+  for (const idx of cachedIndices) {
+    if (distractors.length >= size - 1) break;
+    const verse = allVersesByIndex[idx];
+    if (verse && verse.verse_index !== correctVerse.verse_index) {
+      distractors.push(verse);
+    }
+  }
+
+  if (distractors.length < size - 1) {
+    const needed = size - 1 - distractors.length;
+    const usedIndices = new Set([correctVerse.verse_index, ...distractors.map((v) => v.verse_index)]);
+    const fallbacks = shuffleInPlace(
+      Object.values(allVersesByIndex).filter((v) => !usedIndices.has(v.verse_index)),
+    ).slice(0, needed);
+    distractors.push(...fallbacks);
+  }
+
+  return shuffleInPlace([correctVerse, ...distractors]);
 }
 
 export function applyCorrectAnswer(currentUnlockedUpTo, chosenIndex, correctIndex) {

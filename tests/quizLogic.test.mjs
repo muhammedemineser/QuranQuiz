@@ -26,10 +26,23 @@ test('getNextLockedVerse returns null when surah is complete', () => {
 
 test('buildQuestionOptions includes correct verse and requested size', () => {
   const correct = sampleVerses[2];
-  const options = buildQuestionOptions(sampleVerses, correct, 4);
+  const allVersesByIndex = Object.fromEntries(sampleVerses.map((v) => [v.verse_index, v]));
+  const options = buildQuestionOptions(correct, allVersesByIndex, {}, 4);
 
   assert.equal(options.length, 4);
   assert.equal(options.filter((v) => v.verse_index === correct.verse_index).length, 1);
+});
+
+test('buildQuestionOptions uses distractor cache when available', () => {
+  const correct = sampleVerses[0];
+  const allVersesByIndex = Object.fromEntries(sampleVerses.map((v) => [v.verse_index, v]));
+  const distractorCache = { [correct.verse_index]: [101, 102, 103] };
+  const options = buildQuestionOptions(correct, allVersesByIndex, distractorCache, 4);
+
+  assert.equal(options.length, 4);
+  assert.equal(options.filter((v) => v.verse_index === correct.verse_index).length, 1);
+  const distractorIndices = options.filter((v) => v.verse_index !== correct.verse_index).map((v) => v.verse_index);
+  assert.deepEqual(distractorIndices.sort(), [101, 102, 103]);
 });
 
 test('applyCorrectAnswer only updates for matching correct index', () => {

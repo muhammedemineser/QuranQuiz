@@ -8,11 +8,14 @@ import {
 const USERS_API_URL = 'http://localhost:3000/users';
 const USERS_CACHE_KEY = 'quranquiz_users_cache_v1';
 const QURAN_CACHE_KEY = 'quranquiz_quran_cache_v1';
+const DISTRACTOR_CACHE_KEY = 'quranquiz_distractor_cache_v1';
 const SESSION_KEY = 'quranquiz_session_user_v1';
 
 const state = {
   users: [],
   quranData: null,
+  distractorCache: {},
+  allVersesByIndex: {},
   currentUser: null,
   currentSurah: 1,
   unlockedBySurah: {},
@@ -24,10 +27,12 @@ const appView = document.getElementById('appView');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
 const registerBox = document.getElementById('registerBox');
 const registerForm = document.getElementById('registerForm');
 const registerError = document.getElementById('registerError');
 const regUsernameInput = document.getElementById('regUsername');
+const regPasswordInput = document.getElementById('regPassword');
 const backToLoginBtn = document.getElementById('backToLoginBtn');
 const navActions = document.getElementById('navActions');
 const surahList = document.getElementById('surahList');
@@ -54,7 +59,7 @@ bootstrap().catch((error) => {
 });
 
 async function bootstrap() {
-  await Promise.all([loadUsersToCache(), loadQuranToCache()]);
+  await Promise.all([loadUsersToCache(), loadQuranToCache(), loadDistractorCache()]);
 
   const storedSession = localStorage.getItem(SESSION_KEY);
   if (storedSession) {
@@ -90,17 +95,38 @@ async function loadQuranToCache() {
   const cached = localStorage.getItem(QURAN_CACHE_KEY);
   if (cached) {
     state.quranData = JSON.parse(cached);
+  } else {
+    const response = await fetch('./data/quran-data.json', { cache: 'force-cache' });
+    if (!response.ok) {
+      throw new Error('quran data fetch failed');
+    }
+    state.quranData = await response.json();
+    localStorage.setItem(QURAN_CACHE_KEY, JSON.stringify(state.quranData));
+  }
+
+  for (const verses of Object.values(state.quranData.versesBySurah)) {
+    for (const verse of verses) {
+      state.allVersesByIndex[verse.verse_index] = verse;
+    }
+  }
+}
+
+async function loadDistractorCache() {
+  const cached = localStorage.getItem(DISTRACTOR_CACHE_KEY);
+  if (cached) {
+    state.distractorCache = JSON.parse(cached);
     return;
   }
 
-  const response = await fetch('./data/quran-data.json', { cache: 'force-cache' });
+  const response = await fetch('./django-project/quiz/.cache/distractor_cache.json', { cache: 'force-cache' });
   if (!response.ok) {
-    throw new Error('quran data fetch failed');
+    console.warn('Distractor cache nicht gefunden – fällt auf Zufallsauswahl zurück.');
+    return;
   }
 
   const payload = await response.json();
-  state.quranData = payload;
-  localStorage.setItem(QURAN_CACHE_KEY, JSON.stringify(payload));
+  state.distractorCache = payload.distractors ?? {};
+  localStorage.setItem(DISTRACTOR_CACHE_KEY, JSON.stringify(state.distractorCache));
 }
 
 loginForm.addEventListener('submit', (event) => {
@@ -108,6 +134,8 @@ loginForm.addEventListener('submit', (event) => {
   loginError.textContent = '';
 
   const entered = usernameInput.value.trim().toLowerCase();
+  const enteredPassword = passwordInput.value;
+
   if (!entered) {
     loginError.textContent = 'Username erforderlich.';
     return;
@@ -122,6 +150,11 @@ loginForm.addEventListener('submit', (event) => {
     loginError.textContent = 'User nicht gefunden. Registriere dich hier:';
     regUsernameInput.value = usernameInput.value.trim();
     registerBox.hidden = false;
+    return;
+  }
+
+  if (user.password && user.password !== enteredPassword) {
+    loginError.textContent = 'Falsches Passwort.';
     return;
   }
 
@@ -140,8 +173,14 @@ registerForm.addEventListener('submit', async (event) => {
   registerError.textContent = '';
 
   const username = regUsernameInput.value.trim();
+  const password = regPasswordInput.value;
+
   if (!username) {
     registerError.textContent = 'Username erforderlich.';
+    return;
+  }
+  if (!password) {
+    registerError.textContent = 'Passwort erforderlich.';
     return;
   }
 
@@ -156,7 +195,7 @@ registerForm.addEventListener('submit', async (event) => {
   const response = await fetch(USERS_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username }),
+    body: JSON.stringify({ username, password }),
   });
 
   if (!response.ok) {
@@ -376,9 +415,9 @@ function openQuestion() {
     verseNumber: nextVerse.verse_number,
   };
 
-  modalPrompt.textContent = `Verse ${nextVerse.verse_number}`;
+  modalPrompt.textContent = `Vers ${nextVerse.verse_number}`;
 
-  const options = buildQuestionOptions(verses, nextVerse, 4);
+  const options = buildQuestionOptions(nextVerse, state.allVersesByIndex, state.distractorCache, 4);
   options.forEach((option) => {
     const btn = document.createElement('button');
     btn.type = 'button';
