@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Quran Quiz{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --gold: #c9a84c;
+      --gold-dim: #8a6f2e;
+      --text: #e8e0d0;
+      --text-dim: #7a7060;
+      --correct: #2d6a4f;
+      --wrong: #6b1f1f;
+      --radius: 8px;
+      --nav-height: 58px;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Amiri', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1rem;
+      min-height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      direction: ltr;
+    }
+
+    nav .brand {
+      font-family: 'Scheherazade New', serif;
+      font-size: clamp(1.05rem, 2.6vw, 1.4rem);
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
+
+    nav .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    nav .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-family: sans-serif;
+      font-size: 0.82rem;
+      transition: color 0.2s;
+    }
+
+    nav .nav-links a:hover { color: var(--gold); }
+
+    .main-layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      position: relative;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      direction: rtl;
+    }
+
+    .sidebar-header {
+      padding: 1rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      font-family: sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      direction: ltr;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1rem;
+      text-decoration: none;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      border-bottom: 1px solid transparent;
+      transition: all 0.15s;
+      direction: rtl;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background: var(--surface2);
+      color: var(--gold);
+    }
+
+    .sidebar a .num {
+      font-family: sans-serif;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      min-width: 1.6rem;
+      text-align: left;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      min-width: 0;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 0.95rem;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-family: sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #0d0d0d;
+    }
+
+    .btn-gold:hover { background: #e0bc6a; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold-dim);
+    }
+
+    .btn-outline:hover { background: var(--surface2); }
+
+    @media (min-width: 700px) {
+      html {
+        font-size: 15px;
+      }
+
+      nav {
+        padding: 0.9rem 1.5rem;
+        flex-wrap: nowrap;
+      }
+
+      nav .nav-links {
+        gap: 1.25rem;
+      }
+
+      nav .nav-links a {
+        font-size: 0.85rem;
+      }
+
+      .btn {
+        padding: 0.55rem 1.1rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (min-width: 1100px) {
+      html {
+        font-size: 16px;
+      }
+    }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+<nav>
+  <span class="brand">&#x1F4D6; Quran Quiz</span>
+  <div class="nav-links" style="direction:ltr">
+    {% if user.is_authenticated %}
+      <a href="{% url 'mushaf' %}">Mushaf</a>
+      <a href="{% url 'progress' %}">Progress</a>
+      <a href="{% url 'logout' %}">Logout ({{ user.username }})</a>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'register' %}">Register</a>
+    {% endif %}
+  </div>
+</nav>
+
+<div class="main-layout">
+  {% block sidebar %}{% endblock %}
+  <div class="content">{% block content %}{% endblock %}</div>
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

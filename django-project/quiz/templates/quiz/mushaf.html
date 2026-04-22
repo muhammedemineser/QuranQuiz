@@ -1,0 +1,698 @@
+{% extends "quiz/base.html" %}
+{% block title %}Mushaf – Surah {{ surah_number }}{% endblock %}
+
+{% block extra_css %}
+.mushaf-shell {
+  position: relative;
+  min-height: 100%;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: var(--nav-height) 0 0;
+  background: rgba(0, 0, 0, 0.72);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 35;
+}
+
+.sidebar-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mushaf-sidebar {
+  position: fixed;
+  top: var(--nav-height);
+  right: 0;
+  bottom: 0;
+  width: min(78vw, 290px);
+  min-width: 0;
+  max-width: 290px;
+  border-left: none;
+  border-right: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform 0.22s ease;
+  z-index: 40;
+}
+
+.mushaf-sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-search {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.sidebar-search-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.75rem;
+  color: var(--text);
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  direction: rtl;
+}
+
+.sidebar-search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.sidebar-search-input:focus {
+  outline: none;
+  border-color: var(--gold-dim);
+}
+
+.sidebar-empty {
+  display: none;
+  padding: 1rem;
+  color: var(--text-dim);
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  direction: ltr;
+}
+
+.sidebar-empty.visible {
+  display: block;
+}
+
+.mushaf-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  direction: ltr;
+}
+
+.mushaf-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.sidebar-toggle {
+  min-width: 2.65rem;
+  justify-content: center;
+  padding-inline: 0.75rem;
+}
+
+.surah-title {
+  font-family: 'Scheherazade New', serif;
+  font-size: clamp(1.2rem, 5vw, 1.6rem);
+  color: var(--gold);
+  direction: rtl;
+  line-height: 1.2;
+}
+
+.mushaf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.mushaf-body {
+  padding: 1.1rem 0.9rem 1.5rem;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.basmala {
+  text-align: center;
+  font-family: 'Scheherazade New', serif;
+  font-size: clamp(1.6rem, 7vw, 2.2rem);
+  color: var(--gold);
+  margin-bottom: 1.4rem;
+  direction: rtl;
+}
+
+.verses-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+  direction: rtl;
+  line-height: 1.95;
+}
+
+.verse-token {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding: 0.18rem 0.38rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: background 0.3s;
+  cursor: default;
+  max-width: 100%;
+}
+
+.verse-token.unlocked {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.verse-token.locked {
+  background: var(--surface);
+  color: var(--border);
+  filter: blur(3px);
+  user-select: none;
+}
+
+.verse-token .verse-num {
+  font-family: sans-serif;
+  font-size: 0.58rem;
+  color: var(--gold-dim);
+  vertical-align: super;
+}
+
+.verse-text {
+  font-family: 'Scheherazade New', serif;
+  font-size: clamp(1rem, 4.8vw, 1.4rem);
+  line-height: 1.7;
+}
+
+/* Quiz Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  display: none;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  width: 100%;
+  max-width: 580px;
+  margin: 0.8rem;
+  max-height: calc(100vh - 1.6rem);
+  overflow-y: auto;
+  direction: rtl;
+}
+
+.modal-title {
+  font-family: sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  direction: ltr;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modal-prompt {
+  font-family: 'Scheherazade New', serif;
+  font-size: clamp(0.95rem, 3.8vw, 1.1rem);
+  color: var(--text-dim);
+  margin-bottom: 1.1rem;
+  direction: ltr;
+}
+
+.recent-verses {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.recent-verses:empty {
+  display: none;
+}
+
+.recent-verses-title {
+  font-family: sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  direction: ltr;
+}
+
+.recent-verses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.recent-verse {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  direction: rtl;
+}
+
+.recent-verse-text {
+  flex: 1;
+  font-family: 'Scheherazade New', serif;
+  font-size: clamp(0.92rem, 3.7vw, 1rem);
+  color: var(--text);
+}
+
+.recent-verse-num {
+  font-family: sans-serif;
+  font-size: 0.72rem;
+  color: var(--gold-dim);
+  flex-shrink: 0;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.option-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  direction: ltr;
+}
+
+.option-index {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.option-text {
+  flex: 1;
+  font-family: 'Scheherazade New', serif;
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  text-align: right;
+  direction: rtl;
+}
+
+.option-btn:hover:not(:disabled) {
+  border-color: var(--gold-dim);
+  background: #1a1a1a;
+}
+
+.option-btn.correct { background: var(--correct); border-color: #3a8c66; color: #d0f0e0; }
+.option-btn.wrong   { background: var(--wrong); border-color: #8c3030; color: #f0d0d0; }
+.option-btn:disabled { cursor: default; }
+
+.modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  direction: ltr;
+}
+
+.done-banner {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-family: 'Scheherazade New', serif;
+  font-size: clamp(1.25rem, 5vw, 1.8rem);
+  color: var(--gold);
+  direction: rtl;
+}
+
+@media (min-width: 700px) {
+  .mushaf-header {
+    align-items: center;
+    padding: 1rem 1.5rem;
+  }
+
+  .mushaf-body {
+    padding: 1.8rem 1.5rem 2rem;
+  }
+
+  .verses-grid {
+    gap: 0.75rem;
+    line-height: 2.4;
+  }
+
+  .verse-token {
+    padding: 0.3rem 0.6rem;
+  }
+
+  .verse-token .verse-num {
+    font-size: 0.65rem;
+  }
+
+  .modal {
+    padding: 2rem;
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+}
+
+@media (min-width: 980px) {
+  .mushaf-shell {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .mushaf-sidebar {
+    position: sticky;
+    top: 0;
+    transform: none;
+    width: 220px;
+    min-width: 220px;
+    max-width: none;
+    height: calc(100vh - var(--nav-height));
+    border-right: none;
+    border-left: 1px solid var(--border);
+    z-index: 1;
+  }
+
+  .sidebar-backdrop,
+  .sidebar-toggle {
+    display: none;
+  }
+}
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<div class="sidebar mushaf-sidebar" id="surahSidebar">
+  <div class="sidebar-header">Surahs</div>
+  <div class="sidebar-search">
+    <input
+      id="surahSearch"
+      class="sidebar-search-input"
+      type="text"
+      inputmode="search"
+      autocomplete="off"
+      placeholder="Suche nach Nummer oder Name"
+      aria-label="Search surahs"
+    >
+  </div>
+  {% for ch in chapters %}
+  <a href="?surah={{ ch.chapter_number }}"
+     data-surah-number="{{ ch.chapter_number }}"
+     data-surah-name="{{ ch.chapter_name }}"
+     class="{% if ch.chapter_number == surah_number %}active{% endif %}">
+    <span class="num">{{ ch.chapter_number }}</span>
+    {{ ch.chapter_name }}
+  </a>
+  {% endfor %}
+  <div class="sidebar-empty" id="surahSearchEmpty">No surah found</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="mushaf-shell">
+  <div style="flex:1;min-width:0">
+    <div class="mushaf-header">
+      <div class="mushaf-title-wrap">
+        <button class="btn btn-outline sidebar-toggle" id="sidebarToggle" type="button" aria-controls="surahSidebar" aria-expanded="false" aria-label="Toggle surah list">☰</button>
+        <div class="surah-title">{{ chapters.0.chapter_name }}</div>
+      </div>
+      <div class="mushaf-actions">
+        <a href="{% url 'progress' %}" class="btn btn-outline">Progress</a>
+        <button class="btn btn-gold" id="playBtn">▶ Play</button>
+      </div>
+    </div>
+
+    <div class="mushaf-body">
+      {% if surah_number != 9 %}
+      <div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      {% endif %}
+
+      <div class="verses-grid" id="verseGrid">
+        {% for v in verses %}
+        <span class="verse-token {% if v.verse_index <= unlocked_up_to %}unlocked{% else %}locked{% endif %}"
+              data-index="{{ v.verse_index }}">
+          <span class="verse-text">{{ v.text_ar }}</span>
+          <span class="verse-num">﴿{{ v.verse_number }}﴾</span>
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quiz Modal -->
+<div class="modal-overlay" id="quizModal">
+  <div class="modal">
+    <div class="modal-title">Select the next verse / اختر الآية التالية</div>
+    <div class="modal-prompt" id="modalPrompt"></div>
+    <div class="recent-verses" id="recentVerses"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="closeModal">✕ Close</button>
+      <button class="btn btn-gold" id="nextBtn" style="display:none">Next →</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SURAH = {{ surah_number }};
+const CSRF = "{{ csrf_token }}";
+let correctIndex = null;
+
+const modal = document.getElementById("quizModal");
+const optionsEl = document.getElementById("optionsContainer");
+const promptEl = document.getElementById("modalPrompt");
+const nextBtn = document.getElementById("nextBtn");
+const recentVersesEl = document.getElementById("recentVerses");
+const sidebar = document.getElementById("surahSidebar");
+const sidebarToggle = document.getElementById("sidebarToggle");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+const surahSearchInput = document.getElementById("surahSearch");
+const surahSearchEmpty = document.getElementById("surahSearchEmpty");
+const surahLinks = sidebar ? Array.from(sidebar.querySelectorAll("a[data-surah-number]")) : [];
+
+document.getElementById("playBtn").addEventListener("click", loadQuestion);
+document.getElementById("closeModal").addEventListener("click", () => modal.classList.remove("open"));
+nextBtn.addEventListener("click", loadQuestion);
+document.addEventListener("keydown", handleQuizKeyboard);
+
+if (sidebarToggle && sidebar && sidebarBackdrop) {
+  sidebarToggle.addEventListener("click", () => {
+    const isOpen = sidebar.classList.toggle("open");
+    sidebarBackdrop.classList.toggle("open", isOpen);
+    sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+    document.body.style.overflow = isOpen && window.innerWidth < 980 ? "hidden" : "";
+  });
+
+  sidebarBackdrop.addEventListener("click", closeSidebar);
+
+  sidebar.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", closeSidebar);
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth >= 980) {
+      closeSidebar();
+    }
+  });
+}
+
+if (surahSearchInput && surahLinks.length) {
+  surahSearchInput.addEventListener("input", filterSurahs);
+}
+
+async function loadQuestion() {
+  nextBtn.style.display = "none";
+  optionsEl.innerHTML = '<div style="color:var(--text-dim);font-family:sans-serif;font-size:0.85rem;padding:1rem 0">Loading…</div>';
+  promptEl.textContent = "";
+  modal.classList.add("open");
+  renderRecentVerses();
+
+  const res = await fetch(`/api/question/?surah=${SURAH}`);
+  const data = await res.json();
+
+  if (data.done) {
+    renderRecentVerses();
+    optionsEl.innerHTML = '<div class="done-banner">🎉 سورة مكتملة – Surah Complete!</div>';
+    return;
+  }
+
+  correctIndex = data.correct_index;
+  promptEl.textContent = `Verse ${data.verse_number}`;
+  optionsEl.innerHTML = "";
+
+  data.options.forEach((opt, index) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.type = "button";
+    btn.dataset.index = opt.index;
+    btn.dataset.optionNumber = index + 1;
+
+    const indexEl = document.createElement("span");
+    indexEl.className = "option-index";
+    indexEl.textContent = index + 1;
+
+    const textEl = document.createElement("span");
+    textEl.className = "option-text";
+    textEl.textContent = opt.text;
+
+    btn.appendChild(indexEl);
+    btn.appendChild(textEl);
+    btn.addEventListener("click", () => submitAnswer(opt.index, btn));
+    optionsEl.appendChild(btn);
+  });
+}
+
+async function submitAnswer(chosenIndex, chosenBtn) {
+  const btns = optionsEl.querySelectorAll(".option-btn");
+  btns.forEach(b => b.disabled = true);
+
+  const res = await fetch("/api/answer/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+    body: JSON.stringify({ surah: SURAH, chosen_index: chosenIndex, correct_index: correctIndex }),
+  });
+  const data = await res.json();
+
+  if (data.correct) {
+    chosenBtn.classList.add("correct");
+    unlockVerse(correctIndex);
+    nextBtn.style.display = "inline-flex";
+  } else {
+    chosenBtn.classList.add("wrong");
+    btns.forEach(b => {
+      if (b !== chosenBtn && !b.classList.contains("wrong")) {
+        b.disabled = false;
+      }
+    });
+  }
+}
+
+function unlockVerse(verseIndex) {
+  const token = document.querySelector(`.verse-token[data-index="${verseIndex}"]`);
+  if (token) {
+    token.classList.remove("locked");
+    token.classList.add("unlocked");
+    renderRecentVerses();
+    token.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+function renderRecentVerses() {
+  const unlockedTokens = Array.from(document.querySelectorAll(".verse-token.unlocked")).slice(-5);
+
+  if (!unlockedTokens.length) {
+    recentVersesEl.innerHTML = "";
+    return;
+  }
+
+  const items = unlockedTokens.map(token => {
+    const text = token.querySelector(".verse-text")?.textContent ?? "";
+    const verseNum = token.querySelector(".verse-num")?.textContent ?? "";
+    return `
+      <div class="recent-verse">
+        <span class="recent-verse-text">${escapeHtml(text)}</span>
+        <span class="recent-verse-num">${escapeHtml(verseNum)}</span>
+      </div>
+    `;
+  }).join("");
+
+  recentVersesEl.innerHTML = `
+    <div class="recent-verses-title">Recent Verses</div>
+    <div class="recent-verses-list">${items}</div>
+  `;
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function handleQuizKeyboard(event) {
+  if (event.key === "Escape") {
+    closeSidebar();
+    if (modal.classList.contains("open")) {
+      modal.classList.remove("open");
+    }
+    return;
+  }
+
+  if (!modal.classList.contains("open")) return;
+
+  if (event.key === "Enter") {
+    if (nextBtn.style.display !== "none") {
+      event.preventDefault();
+      nextBtn.click();
+    }
+    return;
+  }
+
+  if (!/^[1-9]$/.test(event.key)) return;
+
+  const optionNumber = parseInt(event.key, 10);
+  const btn = optionsEl.querySelector(`.option-btn[data-option-number="${optionNumber}"]`);
+  if (!btn || btn.disabled) return;
+
+  event.preventDefault();
+  btn.click();
+}
+
+function closeSidebar() {
+  if (!sidebar || !sidebarBackdrop || !sidebarToggle) return;
+  sidebar.classList.remove("open");
+  sidebarBackdrop.classList.remove("open");
+  sidebarToggle.setAttribute("aria-expanded", "false");
+  document.body.style.overflow = "";
+}
+
+function filterSurahs() {
+  const rawQuery = surahSearchInput.value.trim();
+  const query = rawQuery.toLowerCase();
+  const isNumberQuery = /^\d+$/.test(rawQuery);
+  let visibleCount = 0;
+
+  surahLinks.forEach(link => {
+    const number = link.dataset.surahNumber || "";
+    const name = (link.dataset.surahName || "").toLowerCase();
+    const matches = !query || (isNumberQuery ? number === rawQuery : name.includes(query));
+
+    link.style.display = matches ? "" : "none";
+    if (matches) visibleCount += 1;
+  });
+
+  if (surahSearchEmpty) {
+    surahSearchEmpty.classList.toggle("visible", visibleCount === 0);
+  }
+}
+</script>
+{% endblock %}
