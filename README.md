@@ -1,19 +1,17 @@
 # Quran Quiz – Django App
 
+> Legacy backend — Branch: `legacy-django`
+> Statische Playground-Version: Branch `main`
+
 ## Setup
 
 ```bash
 pip install django
 python manage.py migrate
-python manage.py createsuperuser  # optional
 python manage.py runserver
 ```
 
-## Required: quran.db
-
-Place your `quran.db` in the project root (next to `manage.py`).
-
-Expected schema (configurable in `quiz/db_config.py`):
+quran.db schema
 
 ```sql
 CREATE TABLE chapters (
@@ -35,7 +33,7 @@ CREATE TABLE verses (
 ```
 quran_quiz/
 ├── manage.py
-├── quran.db          ← your DB goes here
+├── quran.db
 ├── db.sqlite3        ← Django app DB (users, progress)
 ├── quiz/
 │   ├── db_config.py  ← all table/column names
@@ -61,10 +59,16 @@ quran_quiz/
 
 ## Optional: Precompute Distractors
 
-If you want QuranQuiz to run without a live Meilisearch Docker container during normal app usage, you can precompute the distractor cache once:
-
 ```bash
 python3 build_distractor_cache.py
 ```
 
-This writes `quiz/cache/distractor_cache.json`. After that, `quiz/quran_db.py` will prefer the precomputed cache and only fall back to live search or F1 ranking when the cache is missing.
+## Unterschiede: Static vs Django
+
+| | Static (main) | Django (legacy-django) |
+|---|---|---|
+| Deployment | GitHub Pages | eigener Server |
+| Auth | clientseitiger Mock | serverseitige Session |
+| State | localStorage | DB (`SurahProgress`) |
+| API | json-server | Django Views |
+| Sicherheit | nicht produktionsreif | strukturiert, aber ohne Härteconfig |
