@@ -1,104 +1,59 @@
 # QuranQuiz
 
-## GitHub Pages
-Die statische Playground-Version ist hier erreichbar:
+**Hifz training through Mutashābihāt recognition.**
 
-- `https://<github-username>.github.io/QuranQuiz/`
+The hardest part of memorizing the Quran (*Hifz*) is *Mutashābihāt* — verses so similar they collapse into each other in memory. QuranQuiz targets exactly this:
 
-Wenn dein Repo anders heißt, ist das Muster:
+- Given a verse, pick the correct *next verse* from 4 options
+- Wrong options are not random — they are the *most similar verses* in the entire Quran (Mutashābihāt), ranked by a word-level similarity algorithm
+- Wrong answer → immediate feedback, loop until correct
+- Progress tracked per surah — mastered verses unlock in the Mushaf view
 
-- `https://<github-username>.github.io/<repo-name>/`
+**Live demo:** [mu-mino.github.io/QuranQuiz](https://mu-mino.github.io/QuranQuiz/)
 
-## Project Root
-Im Root liegt die statische, deploybare App (GitHub Pages tauglich):
+---
 
-- `index.html` UI-Entry
-- `styles.css` Styling
-- `app.mjs` Hauptlogik (Login, Surah-Rendering, Quiz, Progress)
-- `quizLogic.mjs` Kernalgorithmus (Question/Answer/Progress)
-- `userSync.mjs` User-Sync-Hilfsfunktionen
-- `user.json` User-Daten für json-server
-- `data/quran-data.json` statischer Quran-Datensatz für Frontend
-- `tests/*.mjs` Node-Tests für Kernlogik und User-Sync
-- `django-project/` ursprüngliches Django-Backend + Originaldaten
+## Project Structure
 
-## Frontend (Static App)
-### Start lokal
+| File | Description |
+|---|---|
+| `index.html` | UI entry point |
+| `styles.css` | Styling |
+| `app.mjs` | Main logic (login, surah rendering, quiz, progress) |
+| `quizLogic.mjs` | Core algorithm (question / answer / progress) |
+| `userSync.mjs` | User sync helpers |
+| `user.json` | User data for json-server |
+| `data/quran-data.json` | Static Quran dataset |
+| `tests/*.mjs` | Node tests for core logic and user sync |
+| `django-project/` | Original Django backend + source data (→ branch `legacy-django`) |
+
+---
+
+## Getting Started
+
 ```bash
-# Terminal 1 — json-server (Port 3000)
+# Terminal 1 — json-server (port 3000)
 npx json-server user.json
 
-# Terminal 2 — statischer Dev-Server
+# Terminal 2 — static dev server
 npx serve .
 ```
-Dann `http://localhost:3000` (oder den Port des Dev-Servers) öffnen.
 
-### User-Flow
-- Endpoint: `http://localhost:3000/users` (json-server)
-- App ruft `GET /users` auf
-- Ergebnis wird in `localStorage` gecacht
-- Login mit einem der Usernamen aus `user.json`
+Then open `http://localhost:3000` (or the port shown by the dev server).
 
-## Backend (Django) mit HASM-Bezug
-Der Ordner `django-project/` enthält das ursprüngliche Backend. Für die Beschreibung nutze ich HASM als Architektur-Linse:
+---
 
-- `H = HTTP/Handlers`
-- `A = Authentication`
-- `S = State`
-- `M = Model`
+## User Flow
 
-### H: HTTP/Handlers
-Dateien:
+- Endpoint: `http://localhost:3000/users`
+- App fetches `GET /users` on load
+- Result is cached in `localStorage`
+- Log in with any username from `user.json`
 
-- `django-project/quiz/urls.py`
-- `django-project/quiz/views.py`
+---
 
-Zentrale Routen:
+## Legacy Backend
 
-- `/` Mushaf-Ansicht
-- `/login/`, `/register/`, `/logout/`
-- `/progress/`
-- `/api/question/` nächste Frage
-- `/api/answer/` Antwort prüfen + Unlock
-- `/api/reset/` Fortschritt resetten
+The original Django version is available in the [`legacy-django`](../../tree/legacy-django) branch, including setup instructions, architecture, matching logic from Auto-Classify-Hadith Repo HASM Branch, routes, auth, state model, and distractor logic.
 
-### A: Authentication
-Django-Auth wird serverseitig genutzt:
-
-- `UserCreationForm` (Register)
-- `AuthenticationForm` (Login)
-- `login_required` schützt Mushaf/Progress/API
-
-Das ist der zentrale Unterschied zur statischen Version:
-
-- Django: serverseitige Session/Auth
-- Static Playground: clientseitiger Mock-Login (nicht sicher)
-
-### S: State
-Lernfortschritt wird pro User und Surah gespeichert:
-
-- Model: `SurahProgress(user, surah_number, unlocked_up_to)`
-- Unlock-Regel: Bei korrekter Antwort wird `unlocked_up_to` erhöht
-- Progress-Ansicht berechnet pro Surah den prozentualen Stand
-
-### M: Model + Datenzugriff
-Persistenzquellen im Django-Projekt:
-
-- `db.sqlite3` für Django-App-Daten (User + Progress)
-- `quran.db` für Quran-Inhalt
-
-Datenzugriff:
-
-- `quiz/quran_db.py` liest Kapitel/Verse aus `quran.db`
-- `quiz/models.py` enthält `SurahProgress`
-- `quiz/db_config.py` kapselt Tabellen-/Spaltennamen
-
-### Distractor/Quiz-Logik im Backend
-- `quiz/quran_db.py` nutzt precomputed Distractor-Cache (`quiz/cache/distractor_cache.json`), falls vorhanden
-- `build_distractor_cache.py` kann Cache vorab erzeugen
-- API liefert Frageoptionen und validiert Antworten serverseitig
-
-## Unterschiede: Static vs Django
-- Static App ist deploybar auf GitHub Pages, aber nicht sicherheitskritisch nutzbar
-- Django-App ist strukturierter für echte Backend-Flows (Auth, persistenter State, serverseitige APIs)
-- Für Produktion wäre ein echtes Security-Setup nötig (HTTPS-Policies, Secret-Handling, harte Auth, Input-Härtung, Monitoring)
+> **Note:** This branch (static app) is deployable on GitHub Pages — no real auth, no persistent state.
