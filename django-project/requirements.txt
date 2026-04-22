@@ -1,9 +1,0 @@
-scikit-learn
-arabic-reshaper
-python-bidi
-camel-tools
-numpy
-evaluate
-regex
-sacrebleu
-django
