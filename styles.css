@@ -173,6 +173,13 @@ input {
   min-height: 18px;
 }
 
+.info-msg {
+  margin: 0 0 12px;
+  color: #f0c060;
+  font-family: sans-serif;
+  font-size: 13px;
+}
+
 #appView {
   display: none;
 }

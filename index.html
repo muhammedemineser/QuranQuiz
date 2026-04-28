@@ -25,28 +25,35 @@
       <div class="auth-box">
         <h1 class="auth-title" dir="rtl">تسجيل الدخول</h1>
         <p class="hint">Username eingeben.</p>
-        <form id="loginForm">
-          <label for="username">Username</label>
-          <input id="username" name="username" type="text" autocomplete="username" required>
-          <label for="password">Passwort</label>
-          <input id="password" name="password" type="password" autocomplete="current-password" required>
-          <button class="btn btn-gold" type="submit">Login</button>
-        </form>
-        <p id="loginError" class="error-msg"></p>
+        <p id="serverStatus" class="info-msg" hidden></p>
 
-        <div id="registerBox" hidden>
-          <hr class="auth-divider">
-          <h2 class="auth-subtitle">Registrieren</h2>
-          <form id="registerForm">
-            <label for="regUsername">Username</label>
-            <input id="regUsername" name="username" type="text" autocomplete="username" required>
-            <label for="regPassword">Passwort</label>
-            <input id="regPassword" name="password" type="password" autocomplete="new-password" required>
-            <button class="btn btn-gold" type="submit">Account anlegen</button>
+        <div id="loginBox">
+          <form id="loginForm">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" required>
+            <label for="password">Passwort</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button class="btn btn-gold" type="submit">Login</button>
           </form>
-          <p id="registerError" class="error-msg"></p>
-          <button class="btn btn-outline" id="backToLoginBtn" type="button" style="margin-top:8px;width:100%">Zurück zum Login</button>
+          <p id="loginError" class="error-msg"></p>
+
+          <div id="registerBox" hidden>
+            <hr class="auth-divider">
+            <h2 class="auth-subtitle">Registrieren</h2>
+            <form id="registerForm">
+              <label for="regUsername">Username</label>
+              <input id="regUsername" name="username" type="text" autocomplete="username" required>
+              <label for="regPassword">Passwort</label>
+              <input id="regPassword" name="password" type="password" autocomplete="new-password" required>
+              <button class="btn btn-gold" type="submit">Account anlegen</button>
+            </form>
+            <p id="registerError" class="error-msg"></p>
+            <button class="btn btn-outline" id="backToLoginBtn" type="button" style="margin-top:8px;width:100%">Zurück zum Login</button>
+          </div>
         </div>
+
+        <hr class="auth-divider">
+        <button class="btn btn-outline" id="guestBtn" type="button" style="width:100%">Ohne Konto fortfahren</button>
       </div>
     </section>
 

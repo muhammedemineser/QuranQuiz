@@ -17,6 +17,7 @@ const state = {
   distractorCache: {},
   allVersesByIndex: {},
   currentUser: null,
+  serverOnline: false,
   currentSurah: 1,
   unlockedBySurah: {},
   question: null,
@@ -24,6 +25,9 @@ const state = {
 
 const loginView = document.getElementById('loginView');
 const appView = document.getElementById('appView');
+const serverStatus = document.getElementById('serverStatus');
+const loginBox = document.getElementById('loginBox');
+const guestBtn = document.getElementById('guestBtn');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 const usernameInput = document.getElementById('username');
@@ -60,13 +64,34 @@ burgerBtn.addEventListener('click', () => {
   burgerBtn.classList.toggle('open');
 });
 
+guestBtn.addEventListener('click', () => {
+  state.currentUser = { id: 'guest', username: 'Gast' };
+  state.unlockedBySurah = readProgress();
+  showApp();
+});
+
 bootstrap().catch((error) => {
   console.error(error);
   loginError.textContent = 'Initialisierung fehlgeschlagen. Bitte Seite neu laden.';
 });
 
 async function bootstrap() {
-  await Promise.all([loadUsersToCache(), loadQuranToCache(), loadDistractorCache()]);
+  await Promise.all([loadQuranToCache(), loadDistractorCache()]);
+
+  const online = await checkServerOnline();
+  state.serverOnline = online;
+
+  if (online) {
+    try {
+      await loadUsersToCache();
+    } catch {
+      const cached = localStorage.getItem(USERS_CACHE_KEY);
+      if (cached) state.users = JSON.parse(cached);
+    }
+  } else {
+    const cached = localStorage.getItem(USERS_CACHE_KEY);
+    if (cached) state.users = JSON.parse(cached);
+  }
 
   const storedSession = localStorage.getItem(SESSION_KEY);
   if (storedSession) {
@@ -80,6 +105,18 @@ async function bootstrap() {
   }
 
   showLogin();
+}
+
+async function checkServerOnline() {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const response = await fetch(USERS_API_URL, { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 async function loadUsersToCache() {
@@ -251,6 +288,15 @@ function showLogin() {
   loginView.classList.add('active');
   appView.classList.remove('active');
   navActions.innerHTML = '';
+
+  if (state.serverOnline) {
+    serverStatus.hidden = true;
+    loginBox.hidden = false;
+  } else {
+    serverStatus.textContent = 'Server ist offline. Login nicht möglich.';
+    serverStatus.hidden = false;
+    loginBox.hidden = true;
+  }
 }
 
 function showApp() {
